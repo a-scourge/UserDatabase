@@ -1,0 +1,42 @@
+package EngDatabase::Schema::Result::UserAttribute;
+use base qw/DBIx::Class::Core/;
+__PACKAGE__->table('PP_USER_ATTRIBUTES');
+__PACKAGE__->add_columns(
+    'USER_ATTRIBUTE_ID'     => { data_type => 'integer' },
+    'USER_ID'               => { data_type => 'text' },
+    'ATTRIBUTE_ID'           => { data_type => 'integer' },
+    'ATTRIBUTE_VALUE'       => { is_nullable => 1 },
+    'ATTRIBUTE_EFFECTIVE_DATE'   => { is_nullable => 1 },
+    'ATTRIBUTE_EXPIRY_DATE'     =>  { is_nullable => 1 },
+);
+__PACKAGE__->set_primary_key('USER_ATTRIBUTE_ID');
+__PACKAGE__->add_unique_constraints(
+    primary => [ qw/USER_ATTRIBUTE_ID/],
+    effective => [ qw/USER_ID ATTRIBUTE_EFFECTIVE_DATE/],
+    expiry    => [ qw/USER_ID ATTRIBUTE_EXPIRY_DATE/],
+    both      => [ qw/USER_ID ATTRIBUTE_EFFECTIVE_DATE
+    ATTRIBUTE_EXPIRY_DATE/],
+);
+
+## Each entry in this table  belongs to a user.
+#See User.pm, they can have many attributes
+__PACKAGE__->belongs_to(
+    user    =>
+    'EngDatabase::Schema::Result::User',
+    { 'foreign.USER_ID'   =>  'self.USER_ID' },
+    { cascade_delete        =>  0   },
+);
+
+## Each entry in this table also has an attribute.
+# See Attribute.pm: each one can have many UserAttributes
+__PACKAGE__->belongs_to(
+    attribute    =>
+    'EngDatabase::Schema::Result::Attribute',
+    { 'foreign.ATTRIBUTE_ID'   =>  'self.ATTRIBUTE_ID' },
+    { cascade_delete        =>  0,
+    proxy => [ qw/ ATTRIBUTE_ID ATTRIBUTE_NAME/ ] 
+    },
+);
+
+
+1;
