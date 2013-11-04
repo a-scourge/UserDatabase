@@ -68,25 +68,6 @@ my $users_rs = $schema->resultset('User')->search(undef,
 print "Proposed changes:\n" unless $makechanges;
 my @populate_array;
 
-#sub print_changes {
-#    my $data = shift;
-#    if (ref($data) eq "ARRAY") {
-#        foreach (@{$data}) {
-#            #next if ref($data) eq "SCALAR";
-#            &print_changes;
-#        }
-# if $object->in_storage    }
-#    elsif (ref($data) eq "HASH") {
-#        foreach my $field ( keys %{$data}) {
-#            #next if ref($data) eq "SCALAR";
-#            &print_changes($data->{$field});
-#        }
-#    }
-#    else { 
-#        my $thing = ref($data);
-#        print "Something cool: $thing \n";
-#    }
-#}
 
 while ( my $line = <>) {
     next unless (my $db_href = &parse_tcb( $line )); # parse may return null

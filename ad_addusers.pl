@@ -76,12 +76,14 @@ while ( my $line = <> ) {
     if ( $user_obj && $user_obj->in_storage) {
         if ($user_obj->ad_enabled) {
             printf ("%-10s added to AD", $username);
-            my $result = &ad_finduser($username);
-            print $result->count();
-            while ( my $entry = $result->shift_entry() ) {
-                print $entry->get_value('sAMAccountName');
+            if ( my $ad_entry = &ad_finduser($username)) {
+                print "The user is in AD!\n";
+
+                my @list =  $ad_entry->attributes;
+                print "The attributes are: @list\n";
             }
             my $wait = <STDIN>;
+
             #&ad_adduser($username, $password, $gecos);
 
         }

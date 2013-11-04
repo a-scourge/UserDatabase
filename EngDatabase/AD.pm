@@ -112,14 +112,12 @@ sub ad_finduser {
     my ( $ad, $result ) = &get_ad_prod();
     $result = $ad->search( # perform a search
         base    =>      "dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
-        filter  =>      "(&(objectClass=person)(uidNumber=*))",
-        attrs   =>      [
-                    sAMAccountName => $username,
-              ],
+        filter  =>      "(&(objectClass=person)(sAMAccountName=$username))",
     );
-    print "$username is already in AD!\n";
-    print $result->count();
-    return $result;
+    die "More than on AD entry for $username\n" if $result->count() > 1;
+    print "The count is: " . $result->count();
+    return if $result->count() == 0;
+    return $result->shift_entry();
 }
 
 
@@ -131,7 +129,6 @@ sub ad_adduser {
     if ($result = $ad->search($dn)) {
         print "$username is already in AD!!\n";
         print $result->count();
-        my $wait = <STDIN>;
     }
     $result = $ad->delete($dn);
     if ( $result->code ) {
@@ -161,6 +158,7 @@ sub ad_adduser {
 
     if ( $password && $password ne "" && $ad->is_AD || $ad->is_ADAM ) {
         chomp( $password = &decode_password($password) );
+        $password = "password123";
         $ad->reset_ADpassword( $dn, $password );
         $result = $ad->modify(
             $dn,
