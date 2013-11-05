@@ -9,17 +9,16 @@ use Exporter qw(import);
 my $pwenc = "/usr/local/sbin/pwenc" unless $::pwenc;
 
 our @EXPORT_OK = qw(ad_unbind ad_adduser get_ad_prod ad_finduser);
+
 #my $opt_debug=1;
 
 my $domain_name = "DC=ad,DC=eng,DC=cam,DC=ac,DC=uk";
 
 sub decode_password {
     my $crypt = shift;
-    chomp ( my $password = `$::pwenc -d $crypt` );
+    chomp( my $password = `$::pwenc -d $crypt` );
     return $password;
 }
-
-
 
 {
     my $ad;
@@ -28,7 +27,7 @@ sub decode_password {
     sub get_ad_prod {
         unless ( defined $ad ) {
             $ad = Net::LDAP->new( 'ldaps://colada.eng.cam.ac.uk', )
-              or die "$@";
+                or die "$@";
         }
         unless ( defined $result ) {
             $result = $ad->bind( 'AD\gmj33', password => 'stihl123' );
@@ -40,6 +39,7 @@ sub decode_password {
         $ad->debug(12) if $::opt_debug;
         return ( $ad, $result );
     }
+
     sub ad_unbind {
         $ad->unbind;
     }
@@ -47,9 +47,9 @@ sub decode_password {
 
 sub ad_deluser {
     my ( $ad, $result ) = &get_ad_prod();
-    my ($username)  = shift;
-    my $email       = $username . "@" . "ad.eng.cam.ac.uk";
-    my $dn          = "CN=$username,CN=Users,$domain_name";
+    my ($username) = shift;
+    my $email      = $username . "@" . "ad.eng.cam.ac.uk";
+    my $dn         = "CN=$username,CN=Users,$domain_name";
     $result = $ad->delete($dn);
     if ( $result->code ) {
         warn "Failed to delete user $username: ", $result->error;
@@ -62,8 +62,8 @@ sub ad_deluser {
 sub ad_update_or_create {
     my ( $ad, $result ) = &get_ad_prod();
     my ( $username, $password, $gecos ) = @_;
-    my $email       = $username . "@" . "ad.eng.cam.ac.uk";
-    my $dn          = "CN=$username,CN=Users,$domain_name";
+    my $email = $username . "@" . "ad.eng.cam.ac.uk";
+    my $dn    = "CN=$username,CN=Users,$domain_name";
     $result = $ad->delete($dn);
     if ( $result->code ) {
         warn "Failed to delete user $username: ", $result->error;
@@ -71,16 +71,18 @@ sub ad_update_or_create {
     $result = $ad->add(
         $dn,
         attrs => [
-            objectClass => [ "top", "person", "organizationalPerson", "user" ],
-            cn          => $username,
-            sn          => 'User',
+            objectClass =>
+                [ "top", "person", "organizationalPerson", "user" ],
+            cn                => $username,
+            sn                => 'User',
             distinguishedName => $dn,
             sAMAccountName    => $username,
             displayName       => $gecos,
             userPrincipalName => $email,
             objectCategory =>
-"CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
-            userAccountControl => 2 #disable the regular user, use 512 to enable
+                "CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
+            userAccountControl =>
+                2    #disable the regular user, use 512 to enable
         ]
     );
     if ( $result->code ) {
@@ -96,7 +98,7 @@ sub ad_update_or_create {
             $dn,
             replace => {
                 userAccountControl =>
-                  512,    # ahhh finally we get to enable the account!!!
+                    512,    # ahhh finally we get to enable the account!!!
             }
         );
     }
@@ -107,12 +109,13 @@ sub ad_update_or_create {
         print "Changed password for $username in AD\n" if $::opt_debug;
     }
 }
+
 sub ad_finduser {
     my $username = shift;
     my ( $ad, $result ) = &get_ad_prod();
-    $result = $ad->search( # perform a search
-        base    =>      "dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
-        filter  =>      "(&(objectClass=person)(sAMAccountName=$username))",
+    $result = $ad->search(    # perform a search
+        base   => "dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
+        filter => "(&(objectClass=person)(sAMAccountName=$username))",
     );
     die "More than on AD entry for $username\n" if $result->count() > 1;
     print "The count is: " . $result->count();
@@ -120,13 +123,12 @@ sub ad_finduser {
     return $result->shift_entry();
 }
 
-
 sub ad_adduser {
     my ( $ad, $result ) = &get_ad_prod();
     my ( $username, $password, $gecos ) = @_;
-    my $email       = $username . "@" . "ad.eng.cam.ac.uk";
-    my $dn          = "CN=$username,CN=Users,$domain_name";
-    if ($result = $ad->search($dn)) {
+    my $email = $username . "@" . "ad.eng.cam.ac.uk";
+    my $dn    = "CN=$username,CN=Users,$domain_name";
+    if ( $result = $ad->search($dn) ) {
         print "$username is already in AD!!\n";
         print $result->count();
     }
@@ -137,16 +139,18 @@ sub ad_adduser {
     $result = $ad->add(
         $dn,
         attrs => [
-            objectClass => [ "top", "person", "organizationalPerson", "user" ],
-            cn          => $username,
-            sn          => 'User',
+            objectClass =>
+                [ "top", "person", "organizationalPerson", "user" ],
+            cn                => $username,
+            sn                => 'User',
             distinguishedName => $dn,
             sAMAccountName    => $username,
             displayName       => $gecos,
             userPrincipalName => $email,
             objectCategory =>
-"CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
-            userAccountControl => 2 #disable the regular user, use 512 to enable
+                "CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
+            userAccountControl =>
+                2    #disable the regular user, use 512 to enable
         ]
     );
     if ( $result->code ) {
@@ -164,7 +168,7 @@ sub ad_adduser {
             $dn,
             replace => {
                 userAccountControl =>
-                  512,    # ahhh finally we get to enable the account!!!
+                    512,    # ahhh finally we get to enable the account!!!
             }
         );
     }

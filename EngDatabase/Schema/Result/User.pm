@@ -5,21 +5,23 @@ use base qw/DBIx::Class::Core/;
 use Data::Dumper;
 __PACKAGE__->table('PP_USERS');
 __PACKAGE__->add_columns(
-    'USER_ID'              => { data_type   => 'integer' },
-    'CRSID'                => { data_type   => 'text' },
-    'ENGID'                => { data_type   => 'text', is_nullable => 1 },
-    'UID'                  => { data_type   => 'integer' },
-    'GECOS'                => { is_nullable => 1 },
-    'HOMEDIR'              => { is_nullable => 1 },
-    'PASSWORD_EXPIRY_DATE' => { is_nullable => 1 },
-    'PROPAGATION'          => { is_nullable => 1 },
-    'STATUS_ID'            => { data_type   => 'integer' },
-    'STATUS_DATE'          => { is_nullable => 1 },
+    'USER_ID' => { data_type => 'integer',  size => '11', },
+    'CRSID'   => { data_type => 'varchar2', size => '10' },
+    'ENGID'   => { data_type => 'text',     size => '10', is_nullable => 1 },
+    'UID'     => { data_type => 'integer',  size => '11', },
+    'GECOS'   => { data_type => 'varchar2', size => '100', is_nullable => 1 },
+    'HOMEDIR' => { data_type => 'varchar2', size => '100', is_nullable => 1 },
+    'PASSWORD_EXPIRY_DATE' =>
+        { data_type => 'varchar2', size => '100', is_nullable => 1 },
+    'PROPAGATION' =>
+        { data_type => 'varchar2', size => '100', is_nullable => 1 },
+    'STATUS_ID'   => { data_type => 'integer', size        => '11', },
+    'STATUS_DATE' => { data_type => 'date',    is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key('USER_ID');
-__PACKAGE__->add_unique_constraints( 
-    both => [qw/ENGID CRSID/],
+__PACKAGE__->add_unique_constraints(
+    both  => [qw/ENGID CRSID/],
     ENGID => [qw/ENGID/],
     CRSID => [qw/CRSID/],
 );
@@ -34,7 +36,7 @@ __PACKAGE__->has_one(
 
         return {
             "$args->{foreign_alias}.USER_ID" =>
-              { -ident => "$args->{self_alias}.USER_ID" },
+                { -ident => "$args->{self_alias}.USER_ID" },
             "$args->{foreign_alias}.PRIMARY_GROUP" => "1",
         };
     }
@@ -46,7 +48,7 @@ __PACKAGE__->has_one(
 
         return {
             "$args->{foreign_alias}.USER_ID" =>
-              { -ident => "$args->{self_alias}.USER_ID" },
+                { -ident => "$args->{self_alias}.USER_ID" },
             "$args->{foreign_alias}.AFFILIATION_GROUP" => "1",
         };
     }
@@ -57,18 +59,16 @@ __PACKAGE__->many_to_many( 'groups' => 'usergroups', 'mygroup' );
 __PACKAGE__->belongs_to(
     status => 'EngDatabase::Schema::Result::Status',
     { 'foreign.STATUS_ID' => 'self.STATUS_ID' },
-    {
-        cascade_delete => 0,   # don't delete the status when you delete a user!
+    {   cascade_delete => 0, # don't delete the status when you delete a user!
         cascade_copy   => 1,
     },
 );
 
 ## Each user has a row in the capabilities table. A one-to-one relationship
-__PACKAGE__->has_one(          # we should be able to change this to a has_one
+__PACKAGE__->has_one(        # we should be able to change this to a has_one
     capabilities => 'EngDatabase::Schema::Result::Capabilities',
     { 'foreign.USER_ID' => 'self.USER_ID' },
-    {
-        cascade_delete => 1,    # do delete the cap when you delete a user!
+    {   cascade_delete => 1,    # do delete the cap when you delete a user!
         cascade_copy   => 1,
     }
 );
@@ -77,8 +77,7 @@ __PACKAGE__->has_one(          # we should be able to change this to a has_one
 __PACKAGE__->has_many(
     userattributes => 'EngDatabase::Schema::Result::UserAttribute',
     { 'foreign.USER_ID' => 'self.USER_ID' },
-    {
-        cascade_delete => 1,    # do delete the attr when you delete a user!
+    {   cascade_delete => 1,    # do delete the attr when you delete a user!
         cascade_copy   => 1,
     }
 );
@@ -98,8 +97,7 @@ sub mygroups {
     my ($self) = @_;
     return $self->usergroups(
         {},
-        {
-            order_by => 'GID',
+        {   order_by => 'GID',
             prefetch => ['mygroup']
         }
     );
@@ -109,8 +107,7 @@ sub myattributes {
     my ($self) = @_;
     return $self->userattributes(
         {},
-        {
-            order_by => 'ATTRIBUTE_NAME',
+        {   order_by => 'ATTRIBUTE_NAME',
             prefetch => ['attribute']
         }
     );
@@ -122,8 +119,6 @@ sub ad_enabled {
     return $self->capabilities->AD_ENABLED;
 }
 
-
-
 # these ones do things to the user obj
 sub update_user {
     my ( $self, $user_href ) = @_;
@@ -134,13 +129,13 @@ sub update_user {
     sub get_group_objects {
         my ( $self, $usergroups_aref ) = @_;
         $groups_rs =
-          $self->groups->result_source->resultset->search( undef,
+            $self->groups->result_source->resultset->search( undef,
             { cache => '1' } )
-          unless defined $groups_rs;
+            unless defined $groups_rs;
         my $tmp_ugroups_aref = [];
         foreach my $usergroup ( @{$usergroups_aref} ) {
             my $mygroup_obj =
-              $groups_rs->find_or_new( delete $usergroup->{mygroup},
+                $groups_rs->find_or_new( delete $usergroup->{mygroup},
                 { key => 'GID' } );
             my $gid = $mygroup_obj->GID;
             if ( $mygroup_obj->in_storage ) {
@@ -151,9 +146,10 @@ sub update_user {
                 $mygroup_obj->insert;
             }
             my $usergroup_obj =
-              $self->find_or_new_related( 'usergroups', $usergroup,
+                $self->find_or_new_related( 'usergroups', $usergroup,
                 { key => 'both' } );
-            if ($usergroup_obj->in_storage) {
+            if ( $usergroup_obj->in_storage ) {
+
                 #print "Found usergroup", $usergroup_obj->GID if $::opt_debug;
                 $usergroup_obj->set_columns($usergroup);
             }
@@ -173,13 +169,14 @@ sub update_user {
     sub get_attribute_objects {
         my ( $self, $userattributes_aref ) = @_;
         $attributes_rs =
-          $self->attributes->result_source->resultset->search( undef,
+            $self->attributes->result_source->resultset->search( undef,
             { cache => '1' } )
-          unless defined $attributes_rs;
+            unless defined $attributes_rs;
         my $tmp_uattributes_aref = [];
         foreach my $userattribute ( @{$userattributes_aref} ) {
             my $attribute_obj =
-              $attributes_rs->find_or_new( delete $userattribute->{attribute},
+                $attributes_rs->find_or_new(
+                delete $userattribute->{attribute},
                 { key => 'name' } );
             my $attr_name = $attribute_obj->ATTRIBUTE_NAME;
             if ( $attribute_obj->in_storage ) {
@@ -189,16 +186,16 @@ sub update_user {
                 $attribute_obj->insert;
             }
             my $userattribute_obj =
-              $self->find_or_new_related( 'userattributes', $userattribute,
+                $self->find_or_new_related( 'userattributes', $userattribute,
                 { key => 'both' },
-              );
-            if ($userattribute_obj->in_storage) {
+                );
+            if ( $userattribute_obj->in_storage ) {
                 $userattribute_obj->set_columns($userattribute);
             }
 
             $userattribute_obj->attribute($attribute_obj);
             $userattribute = \$userattribute_obj;
-            push (@{$tmp_uattributes_aref}, $userattribute_obj);
+            push( @{$tmp_uattributes_aref}, $userattribute_obj );
         }
         $userattributes_aref = $tmp_uattributes_aref;
         return $userattributes_aref;
@@ -210,12 +207,12 @@ sub update_single {
     print "Doing $relationship\n";
     print Dumper $rel_fields;
     my $related_obj =
-      $self->find_or_new_related( "$relationship", $rel_fields );
+        $self->find_or_new_related( "$relationship", $rel_fields );
     foreach my $field ( keys %{$rel_fields} ) {
         next unless ref( $rel_fields->{$field} ) eq "HASH";
         print "Looking for $field\n";
         my $related_obj =
-          $self->$relationship->$field->search( $rel_fields->{$field} );
+            $self->$relationship->$field->search( $rel_fields->{$field} );
     }
     $related_obj->set_columns($rel_fields);
     if ( $related_obj->in_storage ) {
@@ -271,19 +268,19 @@ sub update_user_obj {
         }
 
         $usergroup_obj =
-          $self->find_or_new_related( "$grouptype", $usergroup, );
+            $self->find_or_new_related( "$grouptype", $usergroup, );
         if ( $usergroup_obj->in_storage ) {
 
             #print "$username found a $grouptype object\n";
             #print Dumper $usergroup->{mygroup};
             my $mygroup_obj =
-              $groups_rs->find_or_new( $usergroup->{mygroup},
+                $groups_rs->find_or_new( $usergroup->{mygroup},
                 { key => 'GID' } );
 
             if ( $mygroup_obj->in_storage ) {
                 next if $usergroup_obj->GID == $usergroup->{mygroup}{GID};
                 print "$username add to existing group: "
-                  . $mygroup_obj->GID . "\n";
+                    . $mygroup_obj->GID . "\n";
 
                 #$usergroup_obj->set_from_related('mygroup',
                 #    $mygroup_obj) if $makechanges ;
@@ -314,10 +311,12 @@ sub update_user_obj {
 
         #print Dumper $userattribute;
         my $userattribute_obj =
-          $self->userattributes->find_or_new( $userattribute, { key => 'both' },
-          );
+            $self->userattributes->find_or_new( $userattribute,
+            { key => 'both' },
+            );
         my $eff_date =
-          scalar( localtime( $userattribute_obj->ATTRIBUTE_EFFECTIVE_DATE ) );
+            scalar(
+            localtime( $userattribute_obj->ATTRIBUTE_EFFECTIVE_DATE ) );
         if ( $userattribute_obj->in_storage ) {
 
             #print "$username found a userattribute!\n";
@@ -335,8 +334,8 @@ sub update_user_obj {
 
             #my @fields = $userattribute_obj->get_columns;
             print "$username: new ",
-              $userattribute_obj->attribute->ATTRIBUTE_NAME,
-              " effective date: $eff_date";
+                $userattribute_obj->attribute->ATTRIBUTE_NAME,
+                " effective date: $eff_date";
 
             #$userattribute_obj->insert if $makechanges;
         }
@@ -425,7 +424,7 @@ sub get_tcb_hash {
                 }
                 else {
                     %{ $entry_cols{attribute} } =
-                      $entry->attribute->get_columns;
+                        $entry->attribute->get_columns;
                 }
                 push( @{ $user_record{$relationship} }, \%entry_cols );
             }
