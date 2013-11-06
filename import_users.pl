@@ -43,7 +43,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testovernight.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testfixed2.db');
 print @ARGV . "\n" if $opt_debug;
 my @poparray;
 $schema->storage->debug(1) if $opt_debug;

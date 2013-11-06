@@ -10,9 +10,11 @@ ALTER TABLE PP_GROUPS CHANGE COLUMN GROUP_NAME GROUP_NAME varchar(50) NULL,
 ALTER TABLE PP_GROUP_MEMBERSHIPS DROP INDEX affiliationgroup,
                                  DROP INDEX both,
                                  DROP INDEX primarygroup,
-                                 ADD UNIQUE affiliationgroup (GROUP_MEMBERSHIP_ID, AFFILIATION_GROUP),
-                                 ADD UNIQUE both (GROUP_MEMBERSHIP_ID, PRIMARY_GROUP, AFFILIATION_GROUP),
-                                 ADD UNIQUE primarygroup (GROUP_MEMBERSHIP_ID, PRIMARY_GROUP);
+                                 CHANGE COLUMN PRIMARY_GROUP PRIMARY_GROUP integer(1) NULL,
+                                 CHANGE COLUMN AFFILIATION_GROUP AFFILIATION_GROUP integer(1) NULL,
+                                 ADD UNIQUE affiliationgroup (AFFILIATION_GROUP),
+                                 ADD UNIQUE both (PRIMARY_GROUP, AFFILIATION_GROUP),
+                                 ADD UNIQUE primarygroup (PRIMARY_GROUP);
 
 ALTER TABLE PP_STATUSES CHANGE COLUMN STATUS_NAME STATUS_NAME varchar(100) NULL;
 

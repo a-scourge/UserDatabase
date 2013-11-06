@@ -8,14 +8,15 @@ __PACKAGE__->add_columns(
     'USER_ID' => { data_type => 'integer',  size => '11', },
     'CRSID'   => { data_type => 'varchar2', size => '10' },
     'ENGID'   => { data_type => 'text',     size => '10', is_nullable => 1 },
-    'UID'     => { data_type => 'integer',  size => '11', },
+    'UID'     => { data_type => 'integer',  size => '11', is_nullable => '1',  },
     'GECOS'   => { data_type => 'varchar2', size => '100', is_nullable => 1 },
     'HOMEDIR' => { data_type => 'varchar2', size => '100', is_nullable => 1 },
     'PASSWORD_EXPIRY_DATE' =>
         { data_type => 'varchar2', size => '100', is_nullable => 1 },
     'PROPAGATION' =>
         { data_type => 'varchar2', size => '100', is_nullable => 1 },
-    'STATUS_ID'   => { data_type => 'integer', size        => '11', },
+    'STATUS_ID'   => { data_type => 'integer', size        => '11',
+        is_nullable => '1', },
     'STATUS_DATE' => { data_type => 'date',    is_nullable => 1 },
 );
 
