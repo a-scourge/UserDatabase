@@ -96,7 +96,6 @@ while ( my $line = <>) {
     if ($user_obj->in_storage) {
 
         #since we can't use populate, convert the data into objects:
-        print "User $username found!!!\n";
         my $usergroup_objs = $user_obj->get_group_objects(delete $db_href->{usergroups});
         my $userattribute_objs =
         $user_obj->get_attribute_objects(delete $db_href->{userattributes});
