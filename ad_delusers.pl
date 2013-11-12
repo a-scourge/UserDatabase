@@ -62,7 +62,7 @@ while (<>) {
     my $domain_name = "DC=ad,DC=eng,DC=cam,DC=ac,DC=uk";
     my $email       = $username . "@" . "eng.cam.ac.uk";
     my $dn = "CN=" . $username . ",CN=Users,DC=ad,DC=eng,DC=cam,DC=ac,DC=uk";
-    $mesg = $ad->delete( $dn, );
+    $mesg = $ad->delete( $dn );
     $mesg->code && warn "failed to delete entry: ", $mesg->error;
     print "Deleted user $username\n";
 }

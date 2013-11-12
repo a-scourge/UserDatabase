@@ -5,7 +5,7 @@ use strict;
 use lib 'lib';
 use EngDatabase::Schema;
 use EngDatabase::Format qw(print_changes compare_hash add_propagation parse_tcb);
-use EngDatabase::AD qw(ad_adduser);
+use EngDatabase::AdUser qw(ad_update_or_create_user);
 #use DBIx::Class::ResultClass::HashRefInflator;
 ## begin user documentation stuff
 use Getopt::Long;
@@ -92,10 +92,11 @@ while ( my $line = <>) {
                   },
             ],
     );
-    &ad_adduser($username, $password, $db_href->{GECOS}) if $makechanges;
+    &ad_update_or_create_user($username, $password, $db_href->{GECOS}) if $makechanges;
     if ($user_obj->in_storage) {
 
         #since we can't use populate, convert the data into objects:
+        print "User $username found!!!\n";
         my $usergroup_objs = $user_obj->get_group_objects(delete $db_href->{usergroups});
         my $userattribute_objs =
         $user_obj->get_attribute_objects(delete $db_href->{userattributes});
@@ -115,7 +116,7 @@ while ( my $line = <>) {
 
         foreach my $object (@objects) {
             if ( my $changeline = &print_changes($object)) {
-                print "\nChanges for user $username: $changeline";
+                print "Changes for user $username: $changeline\n";
             }
         }
 
@@ -127,7 +128,7 @@ while ( my $line = <>) {
                 }
                 $object->insert_or_update;
             }
-            print "\n$username $changes_made changes made\n" if $opt_verbose;
+            print "$username $changes_made changes made\n" if $opt_verbose;
         }
 
 

@@ -99,6 +99,7 @@ sub ad_update_or_create_user {
         $user_obj->update($ad);
     }
     else {
+        $username = $self;
         &ad_adduser($username, $password, $gecos);
     }
 }
@@ -106,7 +107,7 @@ sub ad_update_or_create_user {
 sub setgecos {
     my ($self, $gecos) = @_;
     my ($user_obj, $username) = &ad_finduser($self);
-    my $dn    = "CN=$gecos,CN=Users,$domain_name";
+    my $dn    = "CN=$username,CN=Users,$domain_name";
     $user_obj->replace( displayName => $gecos );
     #$user_obj->dn($dn);
     #$user_obj->replace( cn => $gecos );
@@ -151,13 +152,11 @@ sub setpassword {
 
 sub ad_adduser {
         my ( $ad, $result ) = get_ad_prod();
-        my ( $self, $password, $gecos ) = @_;
-        my ($user_obj, $username) = &ad_finduser($self);
+        my ( $username, $password, $gecos ) = @_;
         my $email = $username . "@" . "ad.eng.cam.ac.uk";
         my $dn    = "CN=$username,CN=Users,$domain_name";
-        $result = $ad->add(
+        my $user_obj = Net::LDAP::Entry->new(
             $dn,
-            attrs => [
                 objectClass =>
                   [ "top", "person", "organizationalPerson", "user" ],
                 cn                => $username,
@@ -165,26 +164,37 @@ sub ad_adduser {
                 distinguishedName => $dn,
                 sAMAccountName    => $username,
                 displayName       => $gecos,
+                name              => $gecos,
                 userPrincipalName => $email,
                 objectCategory =>
 "CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
                 userAccountControl =>
                   2    #disable the regular user, use 512 to enable
-            ]
         );
-        if ( $result->code ) {
-            warn "failed to add entry: ", $result->error;
-        }
-        else {
-            print "Added user $username to AD\n" if $::opt_debug;
-        }
+        bless ($user_obj, 'EngDatabase::AdUser');
+        $user_obj->setgecos($gecos);
+        $user_obj->setpassword($password);
+        $user_obj->update($ad);
 
-        if ( $password && $password ne "" && $ad->is_AD || $ad->is_ADAM ) {
+        if ( $ad->is_AD || $ad->is_ADAM ) {
             chomp( $password = &decode_password($password) );
             $password = "password123";
-            $self->setpassword;
+            my $result = $ad->reset_ADpassword($dn, $password);
+            $ad->modify(
+                $dn,
+                replace => {
+                    userAccountControl =>
+                        512,    # enable the account
+                    }
+            );
+            if ( $result->code ) {
+                warn "failed to add entry: ", $result->error;
+            }
+            else {
+                print "Added user $username to AD\n" if $::opt_debug;
+            }
+
         }
-        return $user_obj;
     }
 
 1;

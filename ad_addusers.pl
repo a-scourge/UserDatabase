@@ -3,8 +3,7 @@
 use lib './lib/';
 use warnings;
 use strict;
-use EngDatabase::AD qw(ad_set_gecos ad_unbind ad_adduser ad_finduser);
-use EngDatabase::AdUser;
+use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
 use EngDatabase::Format qw(parse_tcb);
 use EngDatabase::Schema;
 
@@ -77,16 +76,7 @@ while ( my $line = <> ) {
     if ( $user_obj && $user_obj->in_storage) {
         if ($user_obj->ad_enabled) {
             printf ("%-10s added to AD", $username);
-            if ( my $ad_entry = &ad_finduser($username)) {
-                &ad_set_gecos($ad_entry, $gecos);
-                print "Set the GECOS\n";
-
-                my @list =  $ad_entry->attributes;
-                print "The attributes are: @list\n";
-            }
-            my $wait = <STDIN>;
-
-            #&ad_adduser($username, $password, $gecos);
+            &ad_update_or_create_user($username, $password, $gecos);
 
         }
         else {
