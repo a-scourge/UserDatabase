@@ -12,9 +12,9 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('GROUP_MEMBERSHIP_ID');
 __PACKAGE__->add_unique_constraints(
-    primary          => [qw/GROUP_MEMBERSHIP_ID/],
     primarygroup     => [qw/PRIMARY_GROUP/],
-    affiliationgroup => [qw/AFFILIATION_GROUP/]
+    affiliationgroup => [qw/AFFILIATION_GROUP/],
+    both             => [qw/AFFILIATION_GROUP PRIMARY_GROUP/],
 );
 __PACKAGE__->add_unique_constraint(
     both             => [qw/PRIMARY_GROUP AFFILIATION_GROUP/]);

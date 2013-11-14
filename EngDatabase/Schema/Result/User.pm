@@ -30,7 +30,7 @@ __PACKAGE__->has_many(
     'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
     'USER_ID'
 );
-__PACKAGE__->belongs_to(
+__PACKAGE__->has_one(
     'primarygroup' => 'EngDatabase::Schema::Result::GroupMembership',
     sub {
         my $args = shift;
@@ -148,8 +148,40 @@ sub set_tcb {
     $self->set_columns($input_href);
     return $self;
 }
+sub overrideinsert {
+  my ( $self, @args ) = @_;
 
-sub print_dirty {
+
+  $self->next::method(@args);
+  #$self->create_related ('cds', \%initial_cd_data );
+
+
+  return $self
+}
+sub update_all {
+    my ( $self, $prefetch_aref ) = @_;
+    my $guard = $self->result_source->schema->txn_scope_guard;
+    my $username = $self->CRSID || $self->ENGID;
+    sub update_obj {
+        my $object = shift;
+        $object->update;
+     }
+     foreach my $relationship (@{$prefetch_aref}) {
+         if (ref($relationship) eq 'HASH') {
+            while ( my ( $key, $value ) = each %{$relationship} ) {
+                &update_obj($self->$key);
+                &update_obj($self->$key->$value);
+            }
+        }
+        else {
+            &update_obj($self->$relationship)
+        }
+    }
+     &update_obj($self);
+    $guard->commit;
+    return $self;
+}
+sub get_all_dirty {
     my ( $self, $prefetch_aref ) = @_;
     my $changeline;
     my $username = $self->CRSID || $self->ENGID;

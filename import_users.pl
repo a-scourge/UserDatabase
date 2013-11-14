@@ -44,7 +44,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testfixed2.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db');
 print @ARGV . "\n" if $opt_debug;
 my @poparray;
 $schema->storage->debug(1) if $opt_debug;
@@ -113,20 +113,14 @@ while ( my $line = <>) {
             $input_href->{affiliationgroup}{mygroup});
         $db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
         $db_user->set_columns($input_href);
-        my $changes = $db_user->print_dirty($prefetch_aref); 
+        my $changes = $db_user->get_all_dirty($prefetch_aref); 
         print "Changes for $username: $changes \n";
         print Dumper $input_href;
 
-        #since we can't use populate, convert the data into objects:
 
         if ($makechanges) {
             my $changes_made = "no";
-            foreach my $object (@objects) {
-                if ($object->is_changed) {
-                    $changes_made = "";
-                }
-                $object->insert_or_update;
-            }
+            $changes_made = $db_user->update_all($prefetch_aref);
             print "$username $changes_made changes made\n" if $opt_verbose;
         }
 
@@ -135,6 +129,7 @@ while ( my $line = <>) {
     else {
         print "$username add record\n";
         $input_href->{STATUS_ID} = $status_obj->STATUS_ID;
+        print Dumper $input_href;
         #delete $input_href->{capabilities};
         push (@populate_array, $input_href);
     }
@@ -147,6 +142,7 @@ you're happy with the above changes\n" unless $makechanges;
 #print Dumper(\@populate_array);
 #my @newusers = $schema->resultset('User')->populate(\@populate_array);
 #calling in void context is much faster.... see documentation:
+print Dumper \@populate_array;
 $schema->resultset('User')->populate(\@populate_array) if $makechanges;
 
 #
