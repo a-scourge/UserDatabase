@@ -1,7 +1,7 @@
 package EngDatabase::Schema::ResultSet::User;
 use strict;
 use warnings;
-use base qw/DBIx::Class::ResultSet/;
+use base qw/DBIx::Class::ResultSet DBIx::Class::ResultSet::RecursiveUpdate/;
 
 sub ad_enabled {
     my $self = shift;

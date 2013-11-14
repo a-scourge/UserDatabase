@@ -8,6 +8,7 @@ use EngDatabase::Format qw(print_changes compare_hash add_propagation parse_tcb)
 use EngDatabase::AdUser qw(ad_update_or_create_user);
 #use DBIx::Class::ResultClass::HashRefInflator;
 ## begin user documentation stuff
+use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
 my $db_import_VER = '0.1';
@@ -59,8 +60,17 @@ my $groups_rs = $schema->resultset('Group')->search( undef, { cache => 1} );
 #    print "\n";
 #}
 #print "Please press enter to start processing the tcb file:\n";
+my $prefetch_aref = [
+            'capabilities',
+            'status',
+            {'passwordchanged' => 'attribute'},
+            {'primarygroup' => 'mygroup'},
+            {'affiliationgroup' => 'mygroup'},
+        ];
+
 my $users_rs = $schema->resultset('User')->search(undef,
     { 
+        prefetch => $prefetch_aref,
         cache   => '1',
     }
 );
@@ -70,54 +80,44 @@ my @populate_array;
 
 
 while ( my $line = <>) {
-    next unless (my $db_href = &parse_tcb( $line )); # parse may return null
-    my $password = $db_href->{password};
-    delete $db_href->{password};
-    my $username = $db_href->{CRSID} || $db_href->{ENGID};
-    next if not defined $db_href;
+    next unless (my $input_href = &parse_tcb( $line )); # parse may return null
+    my $password = $input_href->{password};
+    delete $input_href->{password};
+    my $username = $input_href->{CRSID} || $input_href->{ENGID};
+    next if not defined $input_href;
     # This section finds the status and sets capabilities 
     my $status_obj = $statuses_rs->find({
-            STATUS_NAME =>  $db_href->{STATUS_NAME}
+            STATUS_NAME =>  $input_href->{STATUS_NAME}
         });
-    delete $db_href->{STATUS_NAME};
-    $db_href->{capabilities}  = $status_obj->get_capabilities_columns;
-    $db_href = &add_propagation($db_href);
+    delete $input_href->{STATUS_NAME};
+    $input_href->{capabilities}  = $status_obj->get_capabilities_columns;
+    $input_href = &add_propagation($input_href);
 
     # Ok now to deal with the primary group:
     # If it already exists, add the user to it:
-    my $user_obj = $users_rs->find_or_new($db_href,
-        prefetch => [ 'capabilities',
-                    'status',
-                        { usergroups => 'mygroup',
-                  },
-            ],
-    );
-    &ad_update_or_create_user($username, $password, $db_href->{GECOS}) if $makechanges;
-    if ($user_obj->in_storage) {
+    &ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
+    if (my $db_user = $users_rs->find($input_href,{
+                #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+        key => 'both',
+        } 
+    )) {
+        print Dumper $input_href;
+        $db_user->capabilities->set_columns(delete $input_href->{capabilities});
+        $db_user->status->set_columns(delete $input_href->{status});
+        delete $input_href->{passwordchanged}{attribute};
+        $db_user->passwordchanged->set_columns(delete $input_href->{passwordchanged});
+        $db_user->primarygroup->mygroup->set_columns(delete
+            $input_href->{primarygroup}{mygroup});
+        $db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
+        $db_user->affiliationgroup->mygroup->set_columns(delete
+            $input_href->{affiliationgroup}{mygroup});
+        $db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
+        $db_user->set_columns($input_href);
+        my $changes = $db_user->print_dirty($prefetch_aref); 
+        print "Changes for $username: $changes \n";
+        print Dumper $input_href;
 
         #since we can't use populate, convert the data into objects:
-        my $usergroup_objs = $user_obj->get_group_objects(delete $db_href->{usergroups});
-        my $userattribute_objs =
-        $user_obj->get_attribute_objects(delete $db_href->{userattributes});
-        my $capabilities = delete $db_href->{capabilities};
-        my $capabilities_obj = $user_obj->find_or_new_related('capabilities',
-            $capabilities);
-       if ($capabilities_obj->in_storage) {
-           $capabilities_obj->set_columns($capabilities);
-       }
-       $user_obj->set_columns($db_href);
-       #$user_obj->status($status_obj);
-
-
-        my @objects = (@{$usergroup_objs}, @{$userattribute_objs}, $user_obj,
-            $capabilities_obj);
-
-
-        foreach my $object (@objects) {
-            if ( my $changeline = &print_changes($object)) {
-                print "Changes for user $username: $changeline\n";
-            }
-        }
 
         if ($makechanges) {
             my $changes_made = "no";
@@ -134,9 +134,9 @@ while ( my $line = <>) {
     }
     else {
         print "$username add record\n";
-        $db_href->{STATUS_ID} = $status_obj->STATUS_ID;
-        #delete $db_href->{capabilities};
-        push (@populate_array, $db_href);
+        $input_href->{STATUS_ID} = $status_obj->STATUS_ID;
+        #delete $input_href->{capabilities};
+        push (@populate_array, $input_href);
     }
 
 }

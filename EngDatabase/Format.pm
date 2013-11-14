@@ -80,34 +80,28 @@ sub parse_tcb {
         PROPAGATION          => $tcb[26],
         password             => $tcb[8],
     );
-    push(
-        @{ $data{userattributes} },
-        {   ATTRIBUTE_VALUE          => "tcb import",
+    $data{passwordchanged} = {
+            ATTRIBUTE_VALUE          => "tcb import",
             ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],
             ATTRIBUTE_EXPIRY_DATE    => ( $tcb[13] + 129600000 ),
             attribute => { ATTRIBUTE_NAME => "password_changed", }
-        }
-    );
+        };
     if ( defined $pri_gid ) {
-        push(
-            @{ $data{usergroups} },
-            {   PRIMARY_GROUP     => 1,
+        $data{primarygroup} = {
+                PRIMARY_GROUP     => 1,
                 AFFILIATION_GROUP => 0,
                 mygroup           => {
                     GID        => $pri_gid,
                     GROUP_NAME => $primary_groupname,
                 }
             }
-        );
     }
     if ( defined $aff_gid ) {
-        push(
-            @{ $data{usergroups} },
-            {   PRIMARY_GROUP     => 0,
+            $data{affiliationgroup} = {
+                PRIMARY_GROUP     => 0,
                 AFFILIATION_GROUP => 1,
                 mygroup           => { GID => $aff_gid, }
             }
-        );
     }
     if ( defined $data{STATUS_NAME}
         && $data{STATUS_NAME} =~ /(^\w*)-(\d{8})/ )
@@ -141,25 +135,25 @@ sub print_changes {
 }
 
 sub compare_hash {
-    my ( $existing_record, $db_href, $username ) = @_;
+    my ( $db_href, $input_href, $username ) = @_;
     my $changed;
-    foreach my $key ( sort keys %$db_href ) {
+    foreach my $key ( sort keys %$input_href ) {
         next if ( $key =~ m/^\w+?_ID$/ );
         next if ( $key eq 'PROP_DEPT' );
 
         #print "Looking at $key\n";
-        if ( ref( $db_href->{$key} ) eq 'ARRAY' ) {
-            &compare_array( $existing_record->{$key},
-                $db_href->{$key}, $username );
+        if ( ref( $input_href->{$key} ) eq 'ARRAY' ) {
+            &compare_array( $db_href->{$key},
+                $input_href->{$key}, $username );
         }
-        elsif ( ref( $db_href->{$key} ) eq 'HASH' ) {
-            &compare_hash( $existing_record->{$key},
-                $db_href->{$key}, $username );
+        elsif ( ref( $input_href->{$key} ) eq 'HASH' ) {
+            &compare_hash( $db_href->{$key},
+                $input_href->{$key}, $username );
         }
         else {
-            if ( $existing_record->{$key} ne $db_href->{$key} ) {
+            if ( $db_href->{$key} ne $input_href->{$key} ) {
                 my ( $old_rec, $new_rec ) =
-                    ( $existing_record->{$key}, $db_href->{$key} );
+                    ( $db_href->{$key}, $input_href->{$key} );
 
                 #$changes->{$key} = "$old_rec, $new_rec";
                 printf "%-10s Change %-15s from %10s to %10s\n", $username,
@@ -195,7 +189,7 @@ sub compare_hash {
         }
     }
 
-    #my $diff = Data::Diff->new($existing_record, $db_href);
+    #my $diff = Data::Diff->new($db_href, $db_href);
     #my $changes = $diff->raw();
 
     #print Dumper $changes->{diff};

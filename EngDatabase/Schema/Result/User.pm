@@ -30,7 +30,7 @@ __PACKAGE__->has_many(
     'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
     'USER_ID'
 );
-__PACKAGE__->has_one(
+__PACKAGE__->belongs_to(
     'primarygroup' => 'EngDatabase::Schema::Result::GroupMembership',
     sub {
         my $args = shift;
@@ -83,6 +83,19 @@ __PACKAGE__->has_many(
     }
 );
 __PACKAGE__->many_to_many( attributes => 'userattributes', 'attribute' );
+__PACKAGE__->has_one(
+    'passwordchanged' => 'EngDatabase::Schema::Result::UserAttribute',
+    { 'foreign.USER_ID' => 'self.USER_ID' },
+    { where => { ATTRIBUTE_ID => 1 } },
+);
+
+
+sub _dumper_hook {
+  $_[0] = bless {
+    %{ $_[0] },
+    result_source => undef,
+  }, ref($_[0]);
+}
 
 # these subroutines return resultsets
 
@@ -121,9 +134,54 @@ sub ad_enabled {
 }
 
 # these ones do things to the user obj
-sub update_user {
-    my ( $self, $user_href ) = @_;
+sub set_tcb {
+    my ( $self, $input_href, $relationship ) = @_;
+    while (my ($key, $value) = each %{$input_href->{$relationship}}) {
+        if (ref($value) eq 'HASH') {
+            $self->$relationship->set_tcb($value, $key);
+            delete $input_href->{$key};
+        }
+        else {
+            $self->set_column({$key => $value});
+        }
+    }
+    $self->set_columns($input_href);
+    return $self;
 }
+
+sub print_dirty {
+    my ( $self, $prefetch_aref ) = @_;
+    my $changeline;
+    my $username = $self->CRSID || $self->ENGID;
+    print "Changes for $username: ";
+    sub check_obj {
+        my $object = shift;
+        my $name = $object->result_source->name;
+        if ( my %changes = $object->get_dirty_columns ) {
+             $changeline .= " $name : ";
+             while ( my ( $key, $value ) = each %changes ) {
+                 $changeline .= " $key => $value ";
+             }
+         }
+     }
+     foreach my $relationship (@{$prefetch_aref}) {
+         if (ref($relationship) eq 'HASH') {
+            while ( my ( $key, $value ) = each %{$relationship} ) {
+                print "Doing key $key\n";
+                &check_obj($self->$key);
+                &check_obj($self->$key->$value);
+            }
+        }
+        else {
+            print "Doing $relationship\n";
+            &check_obj($self->$relationship)
+        }
+    }
+     &check_obj($self);
+    return $changeline;
+}
+
+
 {
     my $groups_rs;
 
