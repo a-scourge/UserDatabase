@@ -131,6 +131,8 @@ while ( my $line = <>) {
         $input_href->{STATUS_ID} = $status_obj->STATUS_ID;
         print Dumper $input_href;
         #delete $input_href->{capabilities};
+        push (@{$input_href->{usergroups}}, delete $input_href->{primarygroup});
+        push (@{$input_href->{usergroups}}, delete $input_href->{affiliationgroup});
         push (@populate_array, $input_href);
     }
 

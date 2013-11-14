@@ -12,21 +12,19 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('GROUP_MEMBERSHIP_ID');
 __PACKAGE__->add_unique_constraints(
-    primarygroup     => [qw/PRIMARY_GROUP/],
-    affiliationgroup => [qw/AFFILIATION_GROUP/],
-    both             => [qw/AFFILIATION_GROUP PRIMARY_GROUP/],
+    primarygroup     => [qw/GROUP_MEMBERSHIP_ID PRIMARY_GROUP/],
+    affiliationgroup => [qw/GROUP_MEMBERSHIP_ID AFFILIATION_GROUP/],
+    both             => [qw/GROUP_MEMBERSHIP_ID AFFILIATION_GROUP PRIMARY_GROUP/],
 );
-__PACKAGE__->add_unique_constraint(
-    both             => [qw/PRIMARY_GROUP AFFILIATION_GROUP/]);
 __PACKAGE__->belongs_to(
     'myuser',
     'EngDatabase::Schema::Result::User',
     { 'foreign.USER_ID' => 'self.USER_ID' },
-    {   proxy => [
-            qw/ USER_ID ENGID CRSID UID GECOS HOMEDIR
-                PASSWORD_EXPIRY_DATE PROPAGATION STATUS_ID STATUS_DATE/
-        ]
-    }
+    #{   proxy => [
+    #        qw/ USER_ID ENGID CRSID UID GECOS HOMEDIR
+    #            PASSWORD_EXPIRY_DATE PROPAGATION STATUS_ID STATUS_DATE/
+    #    ]
+    #}
 );
 __PACKAGE__->belongs_to(
     'mygroup',
