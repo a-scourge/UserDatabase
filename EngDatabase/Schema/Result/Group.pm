@@ -20,5 +20,13 @@ __PACKAGE__->has_many(
     { 'foreign.GROUP_ID' => 'self.GROUP_ID' }
 );
 __PACKAGE__->many_to_many( 'users' => 'usergroups', 'myuser' );
+__PACKAGE__->has_many(
+    primaryusers => 'EngDatabase::Schema::Result::User',
+    { 'foreign.PRIMARY_GROUP' => 'self.GROUP_ID' }
+);
+__PACKAGE__->has_many(
+    affiliationusers => 'EngDatabase::Schema::Result::User',
+    { 'foreign.PRIMARY_GROUP' => 'self.GROUP_ID' }
+);
 
 1;

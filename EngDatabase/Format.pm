@@ -6,7 +6,7 @@ use Data::Dumper;
 use Exporter qw(import);
 
 our @EXPORT_OK =
-    qw(print_changes compare_hash parse_tcb parse_reg parse_grp add_propagation);
+  qw(print_changes compare_hash parse_tcb parse_reg parse_grp add_propagation);
 
 sub parse_grp {
     my $line = $_[0];
@@ -32,13 +32,14 @@ sub parse_tcb {
 
     # The following line is good for csv file made by John
     ( my @tcb ) = split( /,/, $line );
-    my $gid   = $tcb[5];            # the tcb GID field
-    my $crsid = $tcb[1];
-    my $engid = $tcb[0];
-    my $id    = $crsid || $engid;
+    my $gid    = $tcb[5];            # the tcb GID field
+    my $crsid  = $tcb[1];
+    my $engid  = $tcb[0];
+    my $status = $tcb[12];
+    my $id     = $crsid || $engid;
 
     return
-        if ( $gid < 1000
+      if ( $gid < 1000
         && $id !~ m/^(webadmin|webuser|dnsmaint|cvsuser|eximuser)$/ );
 
     my $uid = $tcb[4];
@@ -66,49 +67,35 @@ sub parse_tcb {
     else { $primary_groupname = "not in groups file"; }
 
     %data = (
-
-        #pri_gid => $pri_gid,
-        #aff_gid => $aff_gid,
-        #primary_groupname   => $primary_groupname,
         ENGID                => $engid,
         CRSID                => $crsid,
         UID                  => $uid,
         GECOS                => $tcb[6],
         HOMEDIR              => $tcb[7],
-        STATUS_NAME          => $tcb[12],
+        status               => {
+            STATUS_NAME     => $tcb[12],
+        },
         PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
         PROPAGATION          => $tcb[26],
         password             => $tcb[8],
-    );
-    $data{passwordchanged} = {
+        passwordchanged      => {
             ATTRIBUTE_VALUE          => "tcb import",
             ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],
             ATTRIBUTE_EXPIRY_DATE    => ( $tcb[13] + 129600000 ),
-            attribute => { ATTRIBUTE_NAME => "password_changed", }
-        };
+            attribute => { ATTRIBUTE_NAME => "password_changed", },
+        },
+    );
     if ( defined $pri_gid ) {
         $data{primarygroup} = {
-                PRIMARY_GROUP     => 1,
-                AFFILIATION_GROUP => 0,
-                mygroup           => {
-                    GID        => $pri_gid,
-                    GROUP_NAME => $primary_groupname,
-                    },
-            }
+            GID        => $pri_gid,
+            GROUP_NAME => $primary_groupname,
+        };
     }
     if ( defined $aff_gid ) {
-            $data{affiliationgroup} = {
-                PRIMARY_GROUP     => 0,
-                AFFILIATION_GROUP => 1,
-                mygroup           => { 
-                    GID => $aff_gid,
-                    },
-            }
+        $data{affiliationgroup} = { GID => $aff_gid, };
     }
-    if ( defined $data{STATUS_NAME}
-        && $data{STATUS_NAME} =~ /(^\w*)-(\d{8})/ )
-    {
-        $data{STATUS_NAME} = $1;
+    if ( defined $data{status}{STATUS_NAME} && $data{status}{STATUS_NAME} =~ /(^\w*)-(\d{8})/ ) {
+        $data{status}{STATUS_NAME} = $1;
         $data{STATUS_DATE} = $2;
     }
     return ( \%data );
@@ -145,22 +132,20 @@ sub compare_hash {
 
         #print "Looking at $key\n";
         if ( ref( $input_href->{$key} ) eq 'ARRAY' ) {
-            &compare_array( $db_href->{$key},
-                $input_href->{$key}, $username );
+            &compare_array( $db_href->{$key}, $input_href->{$key}, $username );
         }
         elsif ( ref( $input_href->{$key} ) eq 'HASH' ) {
-            &compare_hash( $db_href->{$key},
-                $input_href->{$key}, $username );
+            &compare_hash( $db_href->{$key}, $input_href->{$key}, $username );
         }
         else {
             if ( $db_href->{$key} ne $input_href->{$key} ) {
                 my ( $old_rec, $new_rec ) =
-                    ( $db_href->{$key}, $input_href->{$key} );
+                  ( $db_href->{$key}, $input_href->{$key} );
 
                 #$changes->{$key} = "$old_rec, $new_rec";
                 printf "%-10s Change %-15s from %10s to %10s\n", $username,
-                    $key, $old_rec, $new_rec
-                    and $changed = 1;
+                  $key, $old_rec, $new_rec
+                  and $changed = 1;
             }
         }
 
@@ -170,20 +155,18 @@ sub compare_hash {
             if ( $new->[0]{ATTRIBUTE_EFFECTIVE_DATE} ) {
                 @{$new} = sort {
                     $a->{ATTRIBUTE_EFFECTIVE_DATE} <=>
-                        $b->{ATTRIBUTE_EFFECTIVE_DATE}
+                      $b->{ATTRIBUTE_EFFECTIVE_DATE}
                 } @{$new};
                 @{$old} = sort {
                     $a->{ATTRIBUTE_EFFECTIVE_DATE} <=>
-                        $b->{ATTRIBUTE_EFFECTIVE_DATE}
+                      $b->{ATTRIBUTE_EFFECTIVE_DATE}
                 } @{$old};
             }
             if ( $new->[0]{PRIMARY_GROUP} ) {
                 @{$new} =
-                    sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} }
-                    @{$new};
+                  sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} } @{$new};
                 @{$old} =
-                    sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} }
-                    @{$old};
+                  sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} } @{$old};
             }
             for my $i ( 0 .. $#{$new} ) {
                 &compare_hash( $old->[$i], $new->[$i], $username );
@@ -282,7 +265,8 @@ sub parse_reg {
     my ( $format, $line ) = @_;
     my %data;
     my $handles;
-    (   $handles,       $data{"status"}, $data{"uid"},   $data{"gid"},
+    (
+        $handles,       $data{"status"}, $data{"uid"},   $data{"gid"},
         $data{"gecos"}, $data{"home"},   $data{"shell"}, $data{"comment"}
     ) = split( /:/, $line );
     if ( defined $data{"comment"} ) {
@@ -303,7 +287,7 @@ sub parse_reg {
     }
 
     $data{PASSWORD_EXPIRY_DATE} =
-        $data{userattributes}[0]{ATTRIBUTE_EXPIRY_DATE};
+      $data{userattributes}[0]{ATTRIBUTE_EXPIRY_DATE};
     return ( \%data, );
 
 }

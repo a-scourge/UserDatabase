@@ -65,8 +65,8 @@ my $prefetch_aref = [
             'capabilities',
             'status',
             {'passwordchanged' => 'attribute'},
-            {primarygroup => 'mygroup'},
-            {affiliationgroup => 'mygroup'},
+            'primarygroup',
+            'affiliationgroup',
         ];
 
 my $users_rs = $schema->resultset('User')->search(undef,
@@ -88,7 +88,7 @@ while ( my $line = <>) {
     next if not defined $input_href;
     # This section finds the status and sets capabilities 
     my $status_obj = $statuses_rs->find({
-            STATUS_NAME =>  $input_href->{STATUS_NAME}
+            STATUS_NAME =>  $input_href->{status}{STATUS_NAME}
         });
     delete $input_href->{STATUS_NAME};
     $input_href->{capabilities}  = $status_obj->get_capabilities_columns;
@@ -98,22 +98,22 @@ while ( my $line = <>) {
     # If it already exists, add the user to it:
     #&ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
     #print Dumper $input_href;
+    #my $wait = <STDIN>;
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
         } 
     )) {
-    #print Dumper $input_href;
         $db_user->capabilities->set_columns(delete $input_href->{capabilities});
         $db_user->status->set_columns(delete $input_href->{status});
-        delete $input_href->{passwordchanged}{attribute};
-        $db_user->passwordchanged->set_columns(delete $input_href->{passwordchanged});
-        $db_user->primarygroup->find_or_new_related('mygroup', delete
+        #delete $input_href->{passwordchanged}{attribute};
+        $db_user->find_or_new_related('passwordchanged', delete $input_href->{passwordchanged});
+        $db_user->find_or_new_related('primarygroup', delete
             $input_href->{primarygroup}{mygroup},
             { key => 'GID'}
         ) if $input_href->{primarygroup}{mygroup};
         #$db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
-        $db_user->affiliationgroup->find_or_new_related('mygroup',delete
+        $db_user->find_or_new_related('affiliationgroup',delete
             $input_href->{affiliationgroup}{mygroup},
             { key => 'GID'}
         ) if $input_href->{primarygroup}{mygroup};
