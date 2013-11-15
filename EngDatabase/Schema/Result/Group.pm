@@ -19,6 +19,6 @@ __PACKAGE__->has_many(
     'EngDatabase::Schema::Result::GroupMembership',
     { 'foreign.GROUP_ID' => 'self.GROUP_ID' }
 );
-__PACKAGE__->many_to_many( 'users' => 'usergroups', 'user' );
+__PACKAGE__->many_to_many( 'users' => 'usergroups', 'myuser' );
 
 1;

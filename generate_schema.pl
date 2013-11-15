@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use lib 'lib/lib/perl5';
+use lib './lib/';
 
 
 use Pod::Usage;

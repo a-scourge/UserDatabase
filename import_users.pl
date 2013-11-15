@@ -44,7 +44,8 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db', {
+        quote_names => 1 });
 print @ARGV . "\n" if $opt_debug;
 my @poparray;
 $schema->storage->debug(1) if $opt_debug;
@@ -63,9 +64,9 @@ my $groups_rs = $schema->resultset('Group')->search( undef, { cache => 1} );
 my $prefetch_aref = [
             'capabilities',
             'status',
-            'passwordchanged',
-            {'primarygroup' => 'group'},
-            #{'affiliationgroup' => 'group'},
+            {'passwordchanged' => 'attribute'},
+            {primarygroup => 'mygroup'},
+            {affiliationgroup => 'mygroup'},
         ];
 
 my $users_rs = $schema->resultset('User')->search(undef,
@@ -96,6 +97,7 @@ while ( my $line = <>) {
     # Ok now to deal with the primary group:
     # If it already exists, add the user to it:
     #&ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
+    #print Dumper $input_href;
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
@@ -106,18 +108,22 @@ while ( my $line = <>) {
         $db_user->status->set_columns(delete $input_href->{status});
         delete $input_href->{passwordchanged}{attribute};
         $db_user->passwordchanged->set_columns(delete $input_href->{passwordchanged});
-        $db_user->primarygroup->find_or_new_related('group', delete
-            $input_href->{primarygroup}{group});
+        $db_user->primarygroup->find_or_new_related('mygroup', delete
+            $input_href->{primarygroup}{mygroup},
+            { key => 'GID'}
+        ) if $input_href->{primarygroup}{mygroup};
         #$db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
-        $db_user->affiliationgroup->find_or_new_related('group',delete
-            $input_href->{affiliationgroup}{group});
+        $db_user->affiliationgroup->find_or_new_related('mygroup',delete
+            $input_href->{affiliationgroup}{mygroup},
+            { key => 'GID'}
+        ) if $input_href->{primarygroup}{mygroup};
         #$db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
         delete $input_href->{primarygroup};
         delete $input_href->{affiliationgroup};
 
         $db_user->set_columns($input_href);
         my $changes = $db_user->get_all_dirty($prefetch_aref); 
-        print "Changes for $username: $changes \n";
+        print "Changes for $username: $changes \n" if $changes;
         # print Dumper $input_href;
 
 

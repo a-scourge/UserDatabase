@@ -90,7 +90,7 @@ sub parse_tcb {
         $data{primarygroup} = {
                 PRIMARY_GROUP     => 1,
                 AFFILIATION_GROUP => 0,
-                group           => {
+                mygroup           => {
                     GID        => $pri_gid,
                     GROUP_NAME => $primary_groupname,
                     },
@@ -100,7 +100,7 @@ sub parse_tcb {
             $data{affiliationgroup} = {
                 PRIMARY_GROUP     => 0,
                 AFFILIATION_GROUP => 1,
-                group           => { 
+                mygroup           => { 
                     GID => $aff_gid,
                     },
             }

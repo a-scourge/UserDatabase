@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('USER_ID');
 __PACKAGE__->add_unique_constraints(
     both  => [qw/ENGID CRSID/],
-    ENGID => [qw/ENGID/],
-    CRSID => [qw/CRSID/],
+    #ENGID => [qw/ENGID/],
+    #CRSID => [qw/CRSID/],
 );
 __PACKAGE__->has_many(
     'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
@@ -33,16 +33,16 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_one(
     'primarygroup' => 'EngDatabase::Schema::Result::GroupMembership',
     {'foreign.USER_ID' => 'self.USER_ID' },
-    { where => { PRIMARY_GROUP => '1' }},
+    { where => { PRIMARY_GROUP => 1 }},
     
 );
 __PACKAGE__->has_one(
     'affiliationgroup' => 'EngDatabase::Schema::Result::GroupMembership',
     {'foreign.USER_ID' => 'self.USER_ID' },
-    { where => { AFFILIATION_GROUP => '1' }},
+    { where => { AFFILIATION_GROUP => 1 }},
 );
 
-__PACKAGE__->many_to_many( 'groups' => 'usergroups', 'group' );
+__PACKAGE__->many_to_many( 'groups' => 'usergroups', 'mygroup' );
 ## Statuses have many users. The other side to PP_STATUSES has_many is this belongs_to:
 __PACKAGE__->belongs_to(
     status => 'EngDatabase::Schema::Result::Status',
@@ -182,7 +182,15 @@ sub get_all_dirty {
          }
      }
      foreach my $relationship (@{$prefetch_aref}) {
+         if (ref($relationship) eq 'HASH') {
+             while ( my ($key,$value) = each %{$relationship} ) {
+                 &check_obj($self->$key);
+                 &check_obj($self->$key->$value);
+             }
+         }
+         else {
             &check_obj($self->$relationship)
+        }
     }
      &check_obj($self);
     return $changeline;
