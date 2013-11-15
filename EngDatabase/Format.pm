@@ -90,17 +90,19 @@ sub parse_tcb {
         $data{primarygroup} = {
                 PRIMARY_GROUP     => 1,
                 AFFILIATION_GROUP => 0,
-                mygroup           => {
+                group           => {
                     GID        => $pri_gid,
                     GROUP_NAME => $primary_groupname,
-                }
+                    },
             }
     }
     if ( defined $aff_gid ) {
             $data{affiliationgroup} = {
                 PRIMARY_GROUP     => 0,
                 AFFILIATION_GROUP => 1,
-                mygroup           => { GID => $aff_gid, }
+                group           => { 
+                    GID => $aff_gid,
+                    },
             }
     }
     if ( defined $data{STATUS_NAME}
@@ -177,10 +179,10 @@ sub compare_hash {
             }
             if ( $new->[0]{PRIMARY_GROUP} ) {
                 @{$new} =
-                    sort { $a->{PRIMARY_GROUP} <=> $b->{mygroup}{GID} }
+                    sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} }
                     @{$new};
                 @{$old} =
-                    sort { $a->{PRIMARY_GROUP} <=> $b->{mygroup}{GID} }
+                    sort { $a->{PRIMARY_GROUP} <=> $b->{group}{GID} }
                     @{$old};
             }
             for my $i ( 0 .. $#{$new} ) {
@@ -199,6 +201,8 @@ sub compare_hash {
 sub add_propagation {
     my $user_href = shift;
     $_ = $user_href->{PROPAGATION};
+
+    return $user_href unless $_;
 
     $user_href->{capabilities}->{PROP_TEACH}   = /T/ ? 1 : 0;
     $user_href->{capabilities}->{PROP_MAIL}    = /M/ ? 1 : 0;

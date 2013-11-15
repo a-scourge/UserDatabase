@@ -63,9 +63,9 @@ my $groups_rs = $schema->resultset('Group')->search( undef, { cache => 1} );
 my $prefetch_aref = [
             'capabilities',
             'status',
-            {'passwordchanged' => 'attribute'},
-            {'primarygroup' => 'mygroup'},
-            {'affiliationgroup' => 'mygroup'},
+            'passwordchanged',
+            {'primarygroup' => 'group'},
+            #{'affiliationgroup' => 'group'},
         ];
 
 my $users_rs = $schema->resultset('User')->search(undef,
@@ -91,31 +91,34 @@ while ( my $line = <>) {
         });
     delete $input_href->{STATUS_NAME};
     $input_href->{capabilities}  = $status_obj->get_capabilities_columns;
-    $input_href = &add_propagation($input_href);
+    $input_href = &add_propagation($input_href) if $input_href->{PROPAGATION};
 
     # Ok now to deal with the primary group:
     # If it already exists, add the user to it:
-    &ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
+    #&ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
         } 
     )) {
-        print Dumper $input_href;
+    #print Dumper $input_href;
         $db_user->capabilities->set_columns(delete $input_href->{capabilities});
         $db_user->status->set_columns(delete $input_href->{status});
         delete $input_href->{passwordchanged}{attribute};
         $db_user->passwordchanged->set_columns(delete $input_href->{passwordchanged});
-        $db_user->primarygroup->mygroup->set_columns(delete
-            $input_href->{primarygroup}{mygroup});
-        $db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
-        $db_user->affiliationgroup->mygroup->set_columns(delete
-            $input_href->{affiliationgroup}{mygroup});
-        $db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
+        $db_user->primarygroup->find_or_new_related('group', delete
+            $input_href->{primarygroup}{group});
+        #$db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
+        $db_user->affiliationgroup->find_or_new_related('group',delete
+            $input_href->{affiliationgroup}{group});
+        #$db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
+        delete $input_href->{primarygroup};
+        delete $input_href->{affiliationgroup};
+
         $db_user->set_columns($input_href);
         my $changes = $db_user->get_all_dirty($prefetch_aref); 
         print "Changes for $username: $changes \n";
-        print Dumper $input_href;
+        # print Dumper $input_href;
 
 
         if ($makechanges) {
@@ -129,10 +132,8 @@ while ( my $line = <>) {
     else {
         print "$username add record\n";
         $input_href->{STATUS_ID} = $status_obj->STATUS_ID;
-        print Dumper $input_href;
+        #print Dumper $input_href;
         #delete $input_href->{capabilities};
-        push (@{$input_href->{usergroups}}, delete $input_href->{primarygroup});
-        push (@{$input_href->{usergroups}}, delete $input_href->{affiliationgroup});
         push (@populate_array, $input_href);
     }
 
@@ -144,7 +145,7 @@ you're happy with the above changes\n" unless $makechanges;
 #print Dumper(\@populate_array);
 #my @newusers = $schema->resultset('User')->populate(\@populate_array);
 #calling in void context is much faster.... see documentation:
-print Dumper \@populate_array;
+#print Dumper \@populate_array;
 $schema->resultset('User')->populate(\@populate_array) if $makechanges;
 
 #

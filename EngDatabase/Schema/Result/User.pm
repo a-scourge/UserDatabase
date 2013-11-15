@@ -32,30 +32,17 @@ __PACKAGE__->has_many(
 );
 __PACKAGE__->has_one(
     'primarygroup' => 'EngDatabase::Schema::Result::GroupMembership',
-    sub {
-        my $args = shift;
-
-        return {
-            "$args->{foreign_alias}.USER_ID" =>
-                { -ident => "$args->{self_alias}.USER_ID" },
-            "$args->{foreign_alias}.PRIMARY_GROUP" => "1",
-        };
-    }
+    {'foreign.USER_ID' => 'self.USER_ID' },
+    { where => { PRIMARY_GROUP => '1' }},
+    
 );
 __PACKAGE__->has_one(
     'affiliationgroup' => 'EngDatabase::Schema::Result::GroupMembership',
-    sub {
-        my $args = shift;
-
-        return {
-            "$args->{foreign_alias}.USER_ID" =>
-                { -ident => "$args->{self_alias}.USER_ID" },
-            "$args->{foreign_alias}.AFFILIATION_GROUP" => "1",
-        };
-    }
+    {'foreign.USER_ID' => 'self.USER_ID' },
+    { where => { AFFILIATION_GROUP => '1' }},
 );
 
-__PACKAGE__->many_to_many( 'groups' => 'usergroups', 'mygroup' );
+__PACKAGE__->many_to_many( 'groups' => 'usergroups', 'group' );
 ## Statuses have many users. The other side to PP_STATUSES has_many is this belongs_to:
 __PACKAGE__->belongs_to(
     status => 'EngDatabase::Schema::Result::Status',
@@ -184,8 +171,6 @@ sub update_all {
 sub get_all_dirty {
     my ( $self, $prefetch_aref ) = @_;
     my $changeline;
-    my $username = $self->CRSID || $self->ENGID;
-    print "Changes for $username: ";
     sub check_obj {
         my $object = shift;
         my $name = $object->result_source->name;
@@ -197,17 +182,7 @@ sub get_all_dirty {
          }
      }
      foreach my $relationship (@{$prefetch_aref}) {
-         if (ref($relationship) eq 'HASH') {
-            while ( my ( $key, $value ) = each %{$relationship} ) {
-                print "Doing key $key\n";
-                &check_obj($self->$key);
-                &check_obj($self->$key->$value);
-            }
-        }
-        else {
-            print "Doing $relationship\n";
             &check_obj($self->$relationship)
-        }
     }
      &check_obj($self);
     return $changeline;

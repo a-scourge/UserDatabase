@@ -17,7 +17,7 @@ __PACKAGE__->add_unique_constraints(
     both             => [qw/GROUP_MEMBERSHIP_ID AFFILIATION_GROUP PRIMARY_GROUP/],
 );
 __PACKAGE__->belongs_to(
-    'myuser',
+    'user',
     'EngDatabase::Schema::Result::User',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     #{   proxy => [
@@ -27,7 +27,7 @@ __PACKAGE__->belongs_to(
     #}
 );
 __PACKAGE__->belongs_to(
-    'mygroup',
+    'group',
     'EngDatabase::Schema::Result::Group',
     { 'foreign.GROUP_ID' => 'self.GROUP_ID' },
     {   proxy          => [qw/ GROUP_NAME GID GROUP_DESC/],
