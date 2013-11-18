@@ -1,5 +1,6 @@
 package EngDatabase::Schema::Result::Group;
 use base qw/DBIx::Class::Core/;
+__PACKAGE__->load_components(qw/EngDatabaseBase/);
 __PACKAGE__->table('PP_GROUPS');
 __PACKAGE__->add_columns(
     'GROUP_ID'   => { data_type => 'integer', size => '11', },

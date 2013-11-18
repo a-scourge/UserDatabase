@@ -9,3 +9,4 @@ sub update {
     return $self->next::method;
 }
 
+1;

@@ -79,6 +79,8 @@ my $users_rs = $schema->resultset('User')->search(undef,
 print "Proposed changes:\n" unless $makechanges;
 my @populate_array;
 
+my $guard = $schema->txn_scope_guard;
+
 
 while ( my $line = <>) {
     next unless (my $input_href = &parse_tcb( $line )); # parse may return null
@@ -97,19 +99,30 @@ while ( my $line = <>) {
     # Ok now to deal with the primary group:
     # If it already exists, add the user to it:
     #&ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
-    print Dumper $input_href;
-    my $wait = <STDIN>;
+    #print Dumper $input_href;
+    #my $wait = <STDIN>;
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
         } 
     )) {
-        foreach my $usergroup ( delete $input_href->{usergroups}) {
-           my ($usergroup_obj, $group_obj) =  $db_user->set_usergroup($usergroup);
-           $usergroup_obj->
+        foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
+            #print Dumper $usergroup_href;
+            my $usergroup_obj = $db_user->find_or_new_related('usergroups',
+                $usergroup_href,
+                {key => 'both' }
+            );
+            my $group_obj = $usergroup_obj->find_or_new_related('mygroup',
+                $usergroup_href->{mygroup});
+            $group_obj->update(delete $usergroup_href->{mygroup});
+            $usergroup_obj->update($usergroup_href);
+            #my ($usergroup_obj, $group_obj) =  $db_user->set_usergroup($usergroup);
         }
-        $db_user->capabilities->set_columns(delete $input_href->{capabilities});
-        $db_user->status->set_columns(delete $input_href->{status});
+
+
+
+        $db_user->capabilities->update(delete $input_href->{capabilities});
+        $db_user->status->update(delete $input_href->{status});
         #delete $input_href->{passwordchanged}{attribute};
         $db_user->find_or_new_related('passwordchanged', delete $input_href->{passwordchanged});
         $db_user->find_or_new_related('primarygroup', delete
@@ -125,9 +138,9 @@ while ( my $line = <>) {
         delete $input_href->{primarygroup};
         delete $input_href->{affiliationgroup};
 
-        $db_user->set_columns($input_href);
-        my $changes = $db_user->get_all_dirty($prefetch_aref); 
-        print "Changes for $username: $changes \n" if $changes;
+        $db_user->update($input_href);
+        #my $changes = $db_user->get_all_dirty($prefetch_aref); 
+        #print "Changes for $username: $changes \n" if $changes;
         # print Dumper $input_href;
 
 
@@ -148,6 +161,8 @@ while ( my $line = <>) {
     }
 
 }
+
+$guard->commit if $makechanges;
 
 print "\nNot making any changes to the database. Please use --makechanges if
 you're happy with the above changes\n" unless $makechanges;

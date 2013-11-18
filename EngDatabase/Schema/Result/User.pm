@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use base qw/DBIx::Class::Core/;
 use Data::Dumper;
+__PACKAGE__->load_components(qw/EngDatabaseBase/);
 __PACKAGE__->table('PP_USERS');
 __PACKAGE__->add_columns(
     'USER_ID' => { data_type => 'integer',  size => '11', },
@@ -150,10 +151,13 @@ sub ad_enabled {
 
 sub set_usergroup {
     my $self = shift;
-    my $usergroup_aref = shift;
-    my $usergroup_obj = $self->find_or_new_related('usergroups', $usergroup_aref);
+    my $usergroup_href = shift;
+    my $usergroup_obj = $self->find_or_new_related('usergroups', $usergroup_href);
     my $group_obj = $usergroup_obj->find_or_new_related('mygroup',
-        $usergroup_aref->{mygroup});
+        $usergroup_href->{mygroup});
+    $group_obj->update(delete $usergroup_href->{mygroup});
+    $usergroup_obj->update($usergroup_href);
+
     return ($usergroup_obj, $group_obj);
 }
 

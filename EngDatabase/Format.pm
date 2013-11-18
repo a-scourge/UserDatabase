@@ -77,7 +77,7 @@ sub parse_tcb {
         },
         PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
         PROPAGATION          => $tcb[26],
-        password             => $tcb[8],
+        password             => $tcb[12],
         passwordchanged      => {
             ATTRIBUTE_VALUE          => "tcb import",
             ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],

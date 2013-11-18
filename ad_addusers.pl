@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
 use EngDatabase::Format qw(parse_tcb);
-use EngDatabase::Schema;
+#use EngDatabase::Schema;
 
 ## begin user documentation stuff
 use Getopt::Long;
@@ -47,13 +47,13 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testfixed2.db');
-my $users_rs = $schema->resultset('User')->search(undef,
-    {
-        prefetch => 'capabilities',
-    }
-);
-$schema->storage->debug(1) if $opt_debug;
+#my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testfixed2.db');
+#my $users_rs = $schema->resultset('User')->search(undef,
+#    {
+#        prefetch => 'capabilities',
+#    }
+#);
+#$schema->storage->debug(1) if $opt_debug;
 
 my $FIELD_COUNT = 9;    # the ul_pwd is field 9
 
@@ -65,27 +65,28 @@ my $wait = <STDIN>;
 
 while ( my $line = <> ) {
     chomp ( $line );
-    print "$line\n";
+    #print "$line\n";
     my $record = &parse_tcb($line);
     my $username = $record->{CRSID} || $record->{ENGID}; 
     my $gecos = $record->{GECOS};
     my $password = $record->{password};
-    my $user_obj = $users_rs->find($record,
-        { key => 'both'},
-    );
-    if ( $user_obj && $user_obj->in_storage) {
-        if ($user_obj->ad_enabled) {
-            printf ("%-10s added to AD", $username);
-            &ad_update_or_create_user($username, $password, $gecos);
-
-        }
-        else {
-            printf("%-10s not AD enabled", $username);
-        }
+    ##my $user_obj = $users_rs->find($record,
+    ##    { key => 'both'},
+    ##);
+    my @notlive =
+    ("purge-noshow","purge-wait","expected",
+        "returning","reinstated","suspended",
+        "disabled","placeholder","not-set",
+        "rhosts-only","setuid-only","group-web");
+    my $match_string = join ("|",@notlive);
+    #print "Username => $username\n";
+    #print "Password => $password\n";
+    if ( $password =~ m/^($match_string)/) {
+        printf ("%-10s not AD enabled\n", $username);
+        next;
     }
-    else { printf ("%-10s not found in database", $username) }
-
-    print "\n";
+    printf ("%-10s added to AD\n", $username);
+    &ad_update_or_create_user($username, $password, $gecos);
 }
 
 
