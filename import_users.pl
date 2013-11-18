@@ -65,8 +65,8 @@ my $prefetch_aref = [
             'capabilities',
             'status',
             {'passwordchanged' => 'attribute'},
-            'primarygroup',
-            'affiliationgroup',
+            #'primarygroup',
+            #'affiliationgroup',
         ];
 
 my $users_rs = $schema->resultset('User')->search(undef,
@@ -87,7 +87,7 @@ while ( my $line = <>) {
     my $username = $input_href->{CRSID} || $input_href->{ENGID};
     next if not defined $input_href;
     # This section finds the status and sets capabilities 
-    my $status_obj = $statuses_rs->find({
+    my $status_obj = $statuses_rs->find_or_new({
             STATUS_NAME =>  $input_href->{status}{STATUS_NAME}
         });
     delete $input_href->{STATUS_NAME};
@@ -97,13 +97,17 @@ while ( my $line = <>) {
     # Ok now to deal with the primary group:
     # If it already exists, add the user to it:
     #&ad_update_or_create_user($username, $password, $input_href->{GECOS}) if $makechanges;
-    #print Dumper $input_href;
-    #my $wait = <STDIN>;
+    print Dumper $input_href;
+    my $wait = <STDIN>;
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
         } 
     )) {
+        foreach my $usergroup ( delete $input_href->{usergroups}) {
+           my ($usergroup_obj, $group_obj) =  $db_user->set_usergroup($usergroup);
+           $usergroup_obj->
+        }
         $db_user->capabilities->set_columns(delete $input_href->{capabilities});
         $db_user->status->set_columns(delete $input_href->{status});
         #delete $input_href->{passwordchanged}{attribute};

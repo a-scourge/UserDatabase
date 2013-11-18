@@ -5,10 +5,10 @@ __PACKAGE__->add_columns(
     'GROUP_MEMBERSHIP_ID' => { data_type => 'integer', size => '11', },
     'USER_ID'             => { data_type => 'integer', size => '11', },
     'GROUP_ID'            => { data_type => 'integer', size => '11', },
-    #'PRIMARY_GROUP'       => { data_type => 'integer', size => '1',
-    #    is_nullable => '1', },
-    #'AFFILIATION_GROUP'   => { data_type => 'integer', size => '1',
-    #    is_nullable => '1', }
+    'PRIMARY_GROUP'       => { data_type => 'integer', size => '1',
+        is_nullable => '1', },
+    'AFFILIATION_GROUP'   => { data_type => 'integer', size => '1',
+        is_nullable => '1', }
 );
 __PACKAGE__->set_primary_key('GROUP_MEMBERSHIP_ID');
 #__PACKAGE__->add_unique_constraints(

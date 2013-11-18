@@ -86,13 +86,23 @@ sub parse_tcb {
         },
     );
     if ( defined $pri_gid ) {
-        $data{primarygroup} = {
-            GID        => $pri_gid,
-            GROUP_NAME => $primary_groupname,
-        };
+        push (@{$data{usergroups}} , {
+            PRIMARY_GROUP => 1,
+            AFFILIATION_GROUP => 0,
+            mygroup     => {
+                GID        => $pri_gid,
+                GROUP_NAME => $primary_groupname,
+            }
+        });
     }
     if ( defined $aff_gid ) {
-        $data{affiliationgroup} = { GID => $aff_gid, };
+        push (@{$data{usergroups}} , { 
+                PRIMARY_GROUP => 0,
+                AFFILIATION_GROUP => 1,
+                mygroup => {
+                    GID => $aff_gid,
+                },
+            });
     }
     if ( defined $data{status}{STATUS_NAME} && $data{status}{STATUS_NAME} =~ /(^\w*)-(\d{8})/ ) {
         $data{status}{STATUS_NAME} = $1;

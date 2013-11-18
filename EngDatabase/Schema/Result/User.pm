@@ -30,7 +30,6 @@ __PACKAGE__->add_columns(
         data_type   => 'integer',
         size        => '11',
         is_nullable => 1,
-        accessor    => '_
     },
 );
 
@@ -43,23 +42,29 @@ __PACKAGE__->add_unique_constraints(
 );
 __PACKAGE__->has_many(
     'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
-    'USER_ID'
+    { 'foreign.USER_ID' => 'self.USER_ID' },
 );
-__PACKAGE__->belongs_to(
+__PACKAGE__->has_one(
     'primarygroup' => 'EngDatabase::Schema::Result::Group',
-    { 'foreign.GROUP_ID' => 'self.PRIMARY_GROUP' },
-    {
-        cascade_delete => 0,
-        cascade_update => 1,
-    },
+    sub {
+        my $args = shift;
+        return {
+            "$args->{foreign_alias}.USER_ID" =>
+              { -ident => "$args->{self_alias}.USER_ID" },
+            "$args->{foreign_alias}.PRIMARY_GROUP" => "1",
+        };
+    }
 );
-__PACKAGE__->belongs_to(
+__PACKAGE__->has_one(
     'affiliationgroup' => 'EngDatabase::Schema::Result::Group',
-    { 'foreign.GROUP_ID' => 'self.PRIMARY_GROUP' },
-    {
-        cascade_delete => 0,
-        cascade_update => 1,
-    },
+    sub {
+        my $args = shift;
+        return {
+            "$args->{foreign_alias}.USER_ID" =>
+              { -ident => "$args->{self_alias}.USER_ID" },
+            "$args->{foreign_alias}.AFFILIATION_GROUP" => "1",
+        };
+    }
 );
 
 __PACKAGE__->many_to_many( 'groups' => 'usergroups', 'mygroup' );
@@ -105,13 +110,13 @@ sub _dumper_hook {
 
 # these subroutines return resultsets
 
-sub primarygroup {
-    my ($self) = @_;
-    return $self->find(
-        { 'usergroups.PRIMARY_GROUP' => '1' },
-        { prefetch                   => [ { usergroups => 'mygroup' } ] }
-    );
-}
+#sub primarygroup {
+#    my ($self) = @_;
+#    return $self->find(
+#        { 'usergroups.PRIMARY_GROUP' => '1' },
+#        { prefetch                   => [ { usergroups => 'mygroup' } ] }
+#    );
+#}
 
 sub mygroups {
     my ($self) = @_;
@@ -141,7 +146,17 @@ sub ad_enabled {
     return $self->capabilities->AD_ENABLED;
 }
 
-# these ones do things to the user obj
+# these ones do things to the user obj and related objs
+
+sub set_usergroup {
+    my $self = shift;
+    my $usergroup_aref = shift;
+    my $usergroup_obj = $self->find_or_new_related('usergroups', $usergroup_aref);
+    my $group_obj = $usergroup_obj->find_or_new_related('mygroup',
+        $usergroup_aref->{mygroup});
+    return ($usergroup_obj, $group_obj);
+}
+
 sub set_tcb {
     my ( $self, $input_href, $relationship ) = @_;
     while ( my ( $key, $value ) = each %{ $input_href->{$relationship} } ) {
