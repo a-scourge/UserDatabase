@@ -81,6 +81,12 @@ my @populate_array;
 
 my $guard = $schema->txn_scope_guard;
 
+my $groups_rs = $schema->resultset('Group')->search(undef,
+    {
+        cache => '1',
+    }
+);
+
 
 while ( my $line = <>) {
     next unless (my $input_href = &parse_tcb( $line )); # parse may return null
@@ -106,19 +112,24 @@ while ( my $line = <>) {
         key => 'both',
         } 
     )) {
-        print "Changes for $username:  ";
+        print "Changes for $username: ";
+        print "The username: " . $db_user->CRSID . "\n";
         foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
-            #print Dumper $usergroup_href;
-            my $usergroup_obj = $db_user->find_or_new_related('usergroups',
+            $usergroup_href->{mygroup} = $groups_rs->find(
+                delete $usergroup_href->{mygroup},
+                { key => 'GID'},
+            );
+            #print "usergroup obj?" . ref($usergroup_href->{mygroup});
+            #print $usergroup_href->{mygroup};
+            #print "<that was teh ref\n";
+            ##print Dumper $usergroup_href;
+            #my $wait = <STDIN>;
+            my $usergroup_obj = $db_user->update_or_create_related('usergroups',
                 $usergroup_href,
                 {key => 'both' }
             );
-            my $group_obj = $usergroup_obj->find_or_new_related('mygroup',
-                $usergroup_href->{mygroup},
-                { key => 'GID'},
-            );
-            $group_obj->update(delete $usergroup_href->{mygroup});
-            $usergroup_obj->update($usergroup_href);
+            #$group_obj->update_or_insert(delete $usergroup_href->{mygroup});
+            #$usergroup_obj->update_or_insert($usergroup_href);
             #my ($usergroup_obj, $group_obj) =  $db_user->set_usergroup($usergroup);
         }
 
