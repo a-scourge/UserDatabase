@@ -106,6 +106,7 @@ while ( my $line = <>) {
         key => 'both',
         } 
     )) {
+        print "Changes for $username:  ";
         foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
             #print Dumper $usergroup_href;
             my $usergroup_obj = $db_user->find_or_new_related('usergroups',
@@ -113,7 +114,9 @@ while ( my $line = <>) {
                 {key => 'both' }
             );
             my $group_obj = $usergroup_obj->find_or_new_related('mygroup',
-                $usergroup_href->{mygroup});
+                $usergroup_href->{mygroup},
+                { key => 'GID'},
+            );
             $group_obj->update(delete $usergroup_href->{mygroup});
             $usergroup_obj->update($usergroup_href);
             #my ($usergroup_obj, $group_obj) =  $db_user->set_usergroup($usergroup);
@@ -150,6 +153,7 @@ while ( my $line = <>) {
             print "$username $changes_made changes made\n" if $opt_verbose;
         }
 
+        print "\n";
 
     }
     else {

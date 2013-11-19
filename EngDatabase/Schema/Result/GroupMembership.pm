@@ -1,6 +1,6 @@
 package EngDatabase::Schema::Result::GroupMembership;
 use base qw/DBIx::Class::Core/;
-__PACKAGE__->load_components(qw/EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 __PACKAGE__->table('PP_GROUP_MEMBERSHIPS');
 __PACKAGE__->add_columns(
     'GROUP_MEMBERSHIP_ID' => { data_type => 'integer', size => '11', },

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/DBIx::Class::Core/;
 use Data::Dumper;
-__PACKAGE__->load_components(qw/EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 __PACKAGE__->table('PP_USERS');
 __PACKAGE__->add_columns(
     'USER_ID' => { data_type => 'integer',  size => '11', },

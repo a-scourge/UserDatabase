@@ -86,10 +86,11 @@ while ( my $line = <> ) {
         next;
     }
     printf ("%-10s added to AD\n", $username);
-    &ad_update_or_create_user($username, $password, $gecos);
+    &ad_update_or_create_user($username, $password, $gecos) if $makechanges;
 }
 
 
+print "No changes were made. Please user --makechanges to allow changes to take effect\n" unless $makechanges;
 
 &ad_unbind;
 
