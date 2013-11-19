@@ -125,22 +125,9 @@ while ( my $line = <>) {
 
 
         $db_user->capabilities->update(delete $input_href->{capabilities});
-        $db_user->status->update(delete $input_href->{status});
+        $db_user->update_or_create_related('status', delete $input_href->{status});
         #delete $input_href->{passwordchanged}{attribute};
         $db_user->find_or_new_related('passwordchanged', delete $input_href->{passwordchanged});
-        $db_user->find_or_new_related('primarygroup', delete
-            $input_href->{primarygroup}{mygroup},
-            { key => 'GID'}
-        ) if $input_href->{primarygroup}{mygroup};
-        #$db_user->primarygroup->set_columns(delete $input_href->{primarygroup});
-        $db_user->find_or_new_related('affiliationgroup',delete
-            $input_href->{affiliationgroup}{mygroup},
-            { key => 'GID'}
-        ) if $input_href->{primarygroup}{mygroup};
-        #$db_user->affiliationgroup->set_columns(delete $input_href->{affiliationgroup});
-        delete $input_href->{primarygroup};
-        delete $input_href->{affiliationgroup};
-
         $db_user->update($input_href);
         #my $changes = $db_user->get_all_dirty($prefetch_aref); 
         #print "Changes for $username: $changes \n" if $changes;
