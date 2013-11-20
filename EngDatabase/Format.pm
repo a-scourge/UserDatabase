@@ -78,12 +78,14 @@ sub parse_tcb {
         PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
         PROPAGATION          => $tcb[26],
         password             => $tcb[12],
-        passwordchanged      => {
-            ATTRIBUTE_VALUE          => "tcb import",
-            ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],
-            ATTRIBUTE_EXPIRY_DATE    => ( $tcb[13] + 129600000 ),
-            attribute => { ATTRIBUTE_NAME => "password_changed", },
-        },
+        userattributes      => [
+            {
+                ATTRIBUTE_VALUE          => "tcb import",
+                ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],
+                ATTRIBUTE_EXPIRY_DATE    => ( $tcb[13] + 129600000 ),
+                attribute => { ATTRIBUTE_NAME => "password_changed", },
+            },
+        ],
     );
     if ( defined $pri_gid ) {
         push (@{$data{usergroups}} , {

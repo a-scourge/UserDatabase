@@ -5,9 +5,15 @@ use Data::Dumper;
 sub update {
     my ($self, $upd) = @_;
     $self->set_inflated_columns($upd);
+    my %oldvalues = $self->get_columns if $::opt_verbose;
     if ( my %changes = $self->get_dirty_columns ) {
         my $name = $self->result_source->name; # if %changes;
-        print "$name:";
+        print "$name ";
+        print "was: " if %oldvalues;
+        while ( my ($key, $value) = each %oldvalues) {
+            print "$key => $value, ";
+        }
+        print "change: ";
         while ( my ($key, $value) = each %changes) {
             print "$key => $value, ";
         }
@@ -17,11 +23,11 @@ sub update {
 
 
 sub insert {
-    my ($self, $upd) = @_;
-    $self->set_inflated_columns($upd);
-    my %changes = $self->get_dirty_columns;
+    my ($self) = @_;
+    #$self->set_inflated_columns($upd);
+    my %changes = $self->get_columns;
     my $name = $self->result_source->name;
-    print "$name:" if %changes;
+    print "Creating $name:" if %changes;
     while ( my ($key, $value) = each %changes) {
         print "$key => $value, ";
     }

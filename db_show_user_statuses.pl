@@ -34,7 +34,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/rand.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db');
 $schema->storage->debug(1) if $opt_debug;
 
 #my $ad_enabled_rs = $schema->resultset('User')->search(                                                            

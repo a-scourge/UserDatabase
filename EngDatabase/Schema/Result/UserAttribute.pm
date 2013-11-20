@@ -1,5 +1,6 @@
 package EngDatabase::Schema::Result::UserAttribute;
 use base qw/DBIx::Class::Core/;
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 __PACKAGE__->table('PP_USER_ATTRIBUTES');
 __PACKAGE__->add_columns(
     'USER_ATTRIBUTE_ID' => { data_type => 'integer', size => '11', },

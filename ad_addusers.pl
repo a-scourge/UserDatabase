@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-use lib './lib/';
+use lib 'lib';
 use warnings;
 use strict;
 use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
@@ -67,7 +67,16 @@ while ( my $line = <> ) {
     chomp ( $line );
     #print "$line\n";
     my $record = &parse_tcb($line);
+    unless ($record) {
+	warn "Unable to parse $line\n";
+	next;
+    }
     my $username = $record->{CRSID} || $record->{ENGID}; 
+#unless ($username) {
+#	print "crsid ", $record->{CRSID}, "\n";
+#	print "engid ", $record->{ENGID}, "\n";
+#	die "No username in $line\n" unless $username;
+#}
     my $gecos = $record->{GECOS};
     my $password = $record->{password};
     ##my $user_obj = $users_rs->find($record,
@@ -85,7 +94,7 @@ while ( my $line = <> ) {
         printf ("%-10s not AD enabled\n", $username);
         next;
     }
-    printf ("%-10s added to AD\n", $username);
+    printf ("Added to AD %-10s %-10s\n", $username, $gecos);
     &ad_update_or_create_user($username, $password, $gecos) if $makechanges;
 }
 

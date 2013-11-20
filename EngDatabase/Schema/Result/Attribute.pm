@@ -6,7 +6,7 @@ __PACKAGE__->add_column(
     'ATTRIBUTE_NAME' => { data_type => 'varchar2', size => '100', },
 );
 __PACKAGE__->set_primary_key('ATTRIBUTE_ID');
-__PACKAGE__->add_unique_constraints( name => [qw/ATTRIBUTE_NAME/] );
+__PACKAGE__->add_unique_constraint( name => [qw/ATTRIBUTE_NAME/] );
 
 __PACKAGE__->has_many(
     userattributes => 'EngDatabase::Schema::Result::Attribute',

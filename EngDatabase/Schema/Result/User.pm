@@ -22,16 +22,16 @@ __PACKAGE__->add_columns(
         is_nullable => '1',
     },
     'STATUS_DATE'   => { data_type => 'date', is_nullable => 1 },
-    'PRIMARY_GROUP' => {
-        data_type   => 'integer',
-        size        => '11',
-        is_nullable => 1,
-    },
-    'AFFILIATION_GROUP' => {
-        data_type   => 'integer',
-        size        => '11',
-        is_nullable => 1,
-    },
+    #'PRIMARY_GROUP' => {
+    #    data_type   => 'integer',
+    #    size        => '11',
+    #    is_nullable => 1,
+    #},
+    #'AFFILIATION_GROUP' => {
+    #    data_type   => 'integer',
+    #    size        => '11',
+    #    is_nullable => 1,
+    #},
 );
 
 __PACKAGE__->set_primary_key('USER_ID');
@@ -99,11 +99,11 @@ __PACKAGE__->has_many(
     }
 );
 __PACKAGE__->many_to_many( attributes => 'userattributes', 'attribute' );
-__PACKAGE__->has_one(
-    'passwordchanged' => 'EngDatabase::Schema::Result::UserAttribute',
-    { 'foreign.USER_ID' => 'self.USER_ID' },
-    { where             => { ATTRIBUTE_ID => 1 } },
-);
+#__PACKAGE__->has_one(
+#    'passwordchanged' => 'EngDatabase::Schema::Result::UserAttribute',
+#    { 'foreign.USER_ID' => 'self.USER_ID' },
+#    { where             => { ATTRIBUTE_ID => 1 } },
+#);
 
 sub _dumper_hook {
     $_[0] = bless { %{ $_[0] }, result_source => undef, }, ref( $_[0] );
