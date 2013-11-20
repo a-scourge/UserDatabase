@@ -2,6 +2,7 @@ package EngDatabase::Schema::ResultSet::User;
 use strict;
 use warnings;
 use base qw/DBIx::Class::ResultSet/;
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 
 sub ad_enabled {
     my $self = shift;

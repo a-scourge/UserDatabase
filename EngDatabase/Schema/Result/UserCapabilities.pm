@@ -1,4 +1,7 @@
 package EngDatabase::Schema::Result::UserCapabilities;
+use strict;
+use warnings;
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 use base qw/DBIx::Class::Core/;
 __PACKAGE__->table('PP_USER_CAPABILITIES');
 __PACKAGE__->add_column(

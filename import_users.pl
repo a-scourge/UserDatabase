@@ -127,7 +127,11 @@ while ( my $line = <>) {
             );
         }
 
-        $db_user->capabilities->update(delete $input_href->{capabilities});
+        #print Dumper $input_href;
+        #print Dumper join ', ' => mro::get_linear_isa('EngDatabase::EngDatabaseBase');
+          #print Dumper $stack_aref;
+          #my $wait = <STDIN>;
+        $db_user->capabilities->update( delete $input_href->{capabilities});
         #$db_user->find_or_create_related('status', delete $input_href->{status});
 
 

@@ -1,9 +1,9 @@
 package EngDatabase::Schema::Result::User;
 use strict;
 use warnings;
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 use base qw/DBIx::Class::Core/;
 use Data::Dumper;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
 __PACKAGE__->table('PP_USERS');
 __PACKAGE__->add_columns(
     'USER_ID' => { data_type => 'integer',  size => '11', },
