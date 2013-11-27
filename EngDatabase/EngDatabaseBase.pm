@@ -2,8 +2,13 @@ package EngDatabase::EngDatabaseBase;
 use base qw(DBIx::Class);
 use Data::Dumper;
 
+sub hello {
+    print "Hello\n";
+}
+
 sub update {
     my ($self, $upd) = @_;
+    #print Dumper $upd;
     $self->set_inflated_columns($upd);
     my %oldvalues = $self->get_columns if $::opt_verbose;
     if ( my %changes = $self->get_dirty_columns ) {

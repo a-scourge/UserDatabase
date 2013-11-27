@@ -1,14 +1,13 @@
 package EngDatabase::Schema::Result::UserCapabilities;
 use strict;
 use warnings;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase
+    +EngDatabase::Test/);
 use base qw/DBIx::Class::Core/;
 __PACKAGE__->table('PP_USER_CAPABILITIES');
-__PACKAGE__->add_column(
+__PACKAGE__->add_columns(
     'CAPABILITIES_ID' => { data_type => 'integer', size => '11' },
     'USER_ID'         => { data_type => 'integer', size => '11' },
-    'STATUS_NAME' =>
-        { data_type => 'integer', size => '1', is_nullable => 1 },
     'AD_PASSWORD' =>
         { data_type => 'integer', size => '1', is_nullable => 1 },
     'AUTOMOUNTER' =>
@@ -20,7 +19,7 @@ __PACKAGE__->add_column(
         { data_type => 'integer', size => '1', is_nullable => 1 },
     'UNIX_ENABLED' =>
         { data_type => 'integer', size => '1', is_nullable => 1 },
-    'PROP_DEPT'  => { data_type => 'integer', size => '1', is_nullable => 1 },
+    'PROP_TEACH'  => { data_type => 'integer', size => '1', is_nullable => 1 },
     'PROP_MAIL'  => { data_type => 'integer', size => '1', is_nullable => 1 },
     'PROP_DIVA'  => { data_type => 'integer', size => '1', is_nullable => 1 },
     'PROP_DIVB'  => { data_type => 'integer', size => '1', is_nullable => 1 },

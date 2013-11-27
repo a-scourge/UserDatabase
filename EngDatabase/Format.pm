@@ -6,7 +6,8 @@ use Data::Dumper;
 use Exporter qw(import);
 
 our @EXPORT_OK =
-  qw(print_changes compare_hash parse_tcb parse_reg parse_grp add_propagation);
+  qw(print_changes compare_hash parse_tcb parse_reg
+  parse_grp get_capabilities_from_propagation add_propagation);
 
 sub parse_grp {
     my $line = $_[0];
@@ -15,11 +16,21 @@ sub parse_grp {
 
     my $group_name = $grp[0];
     my $gid        = $grp[2];
-    my @users      = split( /,/, $grp[3] );
+    my @users      = split( /,/, $grp[3] ) if $grp[3];
+    my @usergroups;
+    foreach my $user (@users) {
+        my $usergroup = {
+            myuser => {
+                ENGID => $user,
+                CRSID => $user,
+            }
+        };
+        push (@usergroups, $usergroup);
+    }
     my %data       = (
         'GROUP_NAME' => $group_name,
         'GID'        => $gid,
-        'users'      => \@users,
+        'usergroups' => \@usergroups,
     );
 
     return ( \%data );
@@ -35,26 +46,46 @@ sub parse_tcb {
     my $gid    = $tcb[5];            # the tcb GID field
     my $crsid  = $tcb[1];
     my $engid  = $tcb[0];
-    my $status = $tcb[12];
     my $id     = $crsid || $engid;
-
     return
       if ( $gid < 1000
         && $id !~ m/^(webadmin|webuser|dnsmaint|cvsuser|eximuser)$/ );
 
+    my $status = $tcb[12];
     my $uid = $tcb[4];
+    my $propagation = $tcb[26];
+    ## now to get capabilities:
+    my $capabilities = {};
+    if ($::statuses_rs) {
+        my $status_obj = $::statuses_rs->find_or_new(
+            {
+                STATUS_NAME => $status,
+            }
+        ); 
+
+        $capabilities =  $status_obj->get_capabilities;
+        if (my $propstring_capabilities = &get_capabilities_from_propagation($propagation)) {
+            $capabilities = { %$capabilities, %$propstring_capabilities };
+        }
+    }
+
+    # we're going to determine these variables:
     my $aff_gid;
     my $pri_gid = $gid;
     my $primary_groupname;
 
+    ## and now to determine them:
+    #first, system accounts uid == gid:
     if ( $uid == $gid ) {
         $primary_groupname = $id;
     }
+    #otherwise, between 4k and 200k, add 100k
     else {
         if ( ( $gid >= 4000 ) && ( $uid < 200_000 ) ) {
             $aff_gid = $gid;
             $pri_gid = $uid + 100_000;
         }
+        #but if above 200k, don't add 100k
         if ( $uid >= 200_000 ) {
             $aff_gid = $gid;
             $pri_gid = $uid;
@@ -72,12 +103,12 @@ sub parse_tcb {
         UID                  => $uid,
         GECOS                => $tcb[6],
         HOMEDIR              => $tcb[7],
+        PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
+        PROPAGATION          => $propagation,
+        capabilities        =>  $capabilities,
         status               => {
             STATUS_NAME     => $tcb[12],
         },
-        PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
-        PROPAGATION          => $tcb[26],
-        password             => $tcb[12],
         userattributes      => [
             {
                 ATTRIBUTE_VALUE          => "tcb import",
@@ -110,7 +141,7 @@ sub parse_tcb {
         $data{status}{STATUS_NAME} = $1;
         $data{STATUS_DATE} = $2;
     }
-    return ( \%data );
+    return ( \%data, $status );
 }
 
 sub print_changes {
@@ -193,6 +224,32 @@ sub compare_hash {
     return $changed;
 }
 
+sub get_capabilities_from_propagation {
+    $_ = shift @_;
+
+    return unless $_;
+
+    my $capabilities = {};
+    $capabilities->{PROP_TEACH}   = /T/ ? 1 : 0;
+    $capabilities->{PROP_MAIL}    = /M/ ? 1 : 0;
+    $capabilities->{PROP_DIVA}    = /a/ ? 1 : 0;
+    $capabilities->{PROP_DIVB}    = /b/ ? 1 : 0;
+    $capabilities->{PROP_DIVF}    = /F/ ? 1 : 0;
+    $capabilities->{PROP_FLUID}   = /f/ ? 1 : 0;
+    $capabilities->{PROP_STRUCT}  = /s/ ? 1 : 0;
+    $capabilities->{PROP_WHITTLE} = /w/ ? 1 : 0;
+    $capabilities->{PROP_WORKS}   = /k/ ? 1 : 0;
+    $capabilities->{PROP_TEST}    = /X/ ? 1 : 0;
+
+    #print $user->CRSID || $user->ENGID;
+    #print ": \n";
+    #print Dumper $RHcapabilities;
+
+    #$capabilities_obj->set_columns($RHcapabilities);
+    #$user->update_or_create_related('capabilities', $RHcapabilities);
+    return $capabilities;
+
+}
 sub add_propagation {
     my $user_href = shift;
     $_ = $user_href->{PROPAGATION};

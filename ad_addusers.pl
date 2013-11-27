@@ -6,6 +6,7 @@ use strict;
 use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
 use EngDatabase::Format qw(parse_tcb);
 #use EngDatabase::Schema;
+use Data::Dumper;
 
 ## begin user documentation stuff
 use Getopt::Long;
@@ -66,11 +67,12 @@ my $wait = <STDIN>;
 while ( my $line = <> ) {
     chomp ( $line );
     #print "$line\n";
-    my $record = &parse_tcb($line);
+    my ($record) = &parse_tcb($line);
     unless ($record) {
 	warn "Unable to parse $line\n";
 	next;
     }
+    print Dumper $record;
     my $username = $record->{CRSID} || $record->{ENGID}; 
 #unless ($username) {
 #	print "crsid ", $record->{CRSID}, "\n";

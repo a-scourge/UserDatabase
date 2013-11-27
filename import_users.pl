@@ -61,7 +61,8 @@ $schema->storage->debug(1) if $opt_debug;
 my $prefetch_aref = [
             'capabilities',
             'status',
-            #{'userattributes' => 'attribute'},
+            {'userattributes' => 'attribute'},
+            {'usergroups' => 'mygroup'},
         ];
 
 my $users_rs = $schema->resultset('User')->search(undef,
@@ -77,33 +78,34 @@ my @populate_array;
 my $guard = $schema->txn_scope_guard;
 
 
-my $statuses_rs = $schema->resultset('Status')->search( undef, { cache => 1} );
+#statuses is used by parse_tcb to fill in capabilities
+our $statuses_rs = $schema->resultset('Status')->search( undef, { cache => 1} );
 my $groups_rs = $schema->resultset('Group')->search( undef, { cache => 1} );
 my $attributes_rs = $schema->resultset('Attribute')->search( undef, { cache => 1} );
 
 
 while ( my $line = <>) {
-    next unless (my $input_href = &parse_tcb( $line )); # parse may return null
-    my $password = $input_href->{password};
-    delete $input_href->{password};
+    next unless (my ($input_href, $password) = &parse_tcb( $line )); # parse may return null
+    my $password = delete $input_href->{password};
     my $username = $input_href->{CRSID} || $input_href->{ENGID};
-    next if not defined $input_href;
-    # This section finds the status and sets capabilities 
-    $input_href->{status} = $statuses_rs->find_or_new({
-            STATUS_NAME =>  $input_href->{status}{STATUS_NAME}
-        });
-    delete $input_href->{STATUS_NAME};
-    $input_href->{capabilities}  = $input_href->{status}->get_capabilities_columns;
-    $input_href = &add_propagation($input_href) if $input_href->{PROPAGATION};
+    #print Dumper $input_href;
+    #my $wait = <STDIN>;
 
 
-
+    if ($input_href->{capabilities}{AD_ENABLED} == 1 && $makechanges) {
+        ad_update_or_create_user($username, $password, $input_href->{GECOS});
+    }
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',
         } 
     )) {
         print "Changes for $username: ";
+
+        $input_href->{status} = $statuses_rs->find_or_new({
+                STATUS_NAME =>  delete $input_href->{status}{STATUS_NAME}
+        });
+
         foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
             $usergroup_href->{mygroup} = $groups_rs->update_or_create(
                 delete $usergroup_href->{mygroup},
@@ -126,23 +128,16 @@ while ( my $line = <>) {
                 {key => 'both' }
             );
         }
-
+        $db_user->capabilities->update( delete $input_href->{capabilities} );
         #print Dumper $input_href;
-        #print Dumper join ', ' => mro::get_linear_isa('EngDatabase::EngDatabaseBase');
-          #print Dumper $stack_aref;
-          #my $wait = <STDIN>;
-        $db_user->capabilities->update( delete $input_href->{capabilities});
-        #$db_user->find_or_create_related('status', delete $input_href->{status});
-
-
-        #delete $input_href->{passwordchanged}{attribute};
+        #my $wait = <STDIN>;
         $db_user->update($input_href);
         print "\n";
 
     }
     else {
         print "$username add record\n";
-        $input_href->{STATUS_ID} = $input_href->{status}->STATUS_ID;
+        #$input_href->{STATUS_ID} = $input_href->{status}->STATUS_ID;
         #print Dumper $input_href;
         #delete $input_href->{capabilities};
         push (@populate_array, $input_href);

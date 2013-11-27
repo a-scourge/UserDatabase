@@ -94,7 +94,7 @@ sub ad_update_or_create_user {
     my ( $ad, $result ) = &get_ad_prod();
     my ( $self, $password, $gecos ) = @_;
     if (my ($user_obj, $username) = &ad_finduser($self)) {
-        $user_obj->setpassword($password) if $password;
+        #$user_obj->setpassword($password) if $password;
         $user_obj->setgecos($gecos) if $gecos;
         $user_obj->update($ad);
     }
@@ -105,13 +105,11 @@ sub ad_update_or_create_user {
 }
 
 sub setgecos {
+    my ( $ad, $result ) = &get_ad_prod();
     my ($self, $gecos) = @_;
+    my $username = $self;
     my ($user_obj, $username) = &ad_finduser($self);
-    my $dn    = "CN=$username,CN=Users,$domain_name";
-    $user_obj->replace( displayName => $gecos );
-    #$user_obj->dn($dn);
-    #$user_obj->replace( cn => $gecos );
-    #$user_obj->replace( name => $gecos );
+    my $olddn    = $user_obj->get_value('distinguishedName');
     $gecos =~ /^([\w\-\.]*)\s*?([\w\-]*?)$/;
     my ($first, $last) = ($1, $2);
     my $middle;
@@ -119,9 +117,23 @@ sub setgecos {
         ($first, $middle) = ($1, $2) 
     }
     else { $first =~ s/\.// }
+    #$gecos .= "(${username})";
+    print "Gecos: $gecos\n";
+    my $rdn = "CN=$gecos($username)";
+    my $dn    = "CN=$username,CN=Users,$domain_name";
+    $result = $ad->modrdn ($olddn,
+        newrdn => $rdn,
+        deleteoldrdn => '1',
+        name    => $gecos,
+    );
     $user_obj->replace( givenName => $first ) if $first;
     $user_obj->replace( initials => $middle ) if $middle;
     $user_obj->replace( sn => $last ) if $last;
+    $user_obj->replace(
+        #name => $gecos, # don't touch 'name', must match the RDN 
+        #cn => $gecos, # this also has to match the RDN
+       displayName => $gecos,
+    );
     return $user_obj;
 }
 
@@ -148,17 +160,16 @@ sub ad_adduser {
         my ( $ad, $result ) = get_ad_prod();
         my ( $username, $password, $gecos ) = @_;
         my $email = $username . "@" . "ad.eng.cam.ac.uk";
-        my $dn    = "CN=$gecos,CN=Users,$domain_name";
+        my $dn    = "CN=$gecos($username),CN=Users,$domain_name";
         my $user_obj = Net::LDAP::Entry->new(
             $dn,
                 objectClass =>
                   [ "top", "person", "organizationalPerson", "user" ],
-                cn                => $username,
-                sn                => 'User',
-                distinguishedName => $dn,
+                  #cn                => $gecos,
+                  #distinguishedName => $dn,
                 sAMAccountName    => $username,
                 displayName       => $gecos,
-                name              => $gecos,
+                #name              => $gecos,
                 userPrincipalName => $email,
                 objectCategory =>
 "CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
@@ -167,7 +178,7 @@ sub ad_adduser {
         );
         bless ($user_obj, 'EngDatabase::AdUser');
         $user_obj->setgecos($gecos);
-        $user_obj->setpassword($password);
+        #$user_obj->setpassword($password);
         $user_obj->update($ad);
 
         if ( $ad->is_AD || $ad->is_ADAM ) {

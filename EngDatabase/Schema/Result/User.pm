@@ -81,7 +81,7 @@ __PACKAGE__->belongs_to(
 
 ## Each user has a row in the capabilities table. A one-to-one relationship
 __PACKAGE__->has_one(          # we should be able to change this to a has_one
-    capabilities => 'EngDatabase::Schema::Result::Capabilities',
+    capabilities => 'EngDatabase::Schema::Result::UserCapabilities',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     {
         cascade_delete => 1,    # do delete the cap when you delete a user!

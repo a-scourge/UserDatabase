@@ -37,21 +37,21 @@ __PACKAGE__->has_many(
     { 'foreign.STATUS_ID' => 'self.STATUS_ID' }
 );
 
-sub get_capabilities_columns {
+sub get_capabilities {
     my $self         = shift;
     my %capabilities = $self->get_columns;
     delete $capabilities{STATUS_NAME};
     delete $capabilities{STATUS_ID};
-    delete $capabilities{PROP_DEPT};
-    delete $capabilities{PROP_MAIL};
-    delete $capabilities{PROP_DIVA};
-    delete $capabilities{PROP_DIVB};
-    delete $capabilities{PROP_DIVF};
-    delete $capabilities{PROP_FLUID};
-    delete $capabilities{PROP_STRUCT};
-    delete $capabilities{PROP_WHITTLE};
-    delete $capabilities{PROP_WORKS};
-    delete $capabilities{PROP_TEST};
+    #delete $capabilities{PROP_DEPT};
+    #delete $capabilities{PROP_MAIL};
+    #delete $capabilities{PROP_DIVA};
+    #delete $capabilities{PROP_DIVB};
+    #delete $capabilities{PROP_DIVF};
+    #delete $capabilities{PROP_FLUID};
+    #delete $capabilities{PROP_STRUCT};
+    #delete $capabilities{PROP_WHITTLE};
+    #delete $capabilities{PROP_WORKS};
+    #delete $capabilities{PROP_TEST};
     return \%capabilities;
 
 }
