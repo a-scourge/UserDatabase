@@ -67,12 +67,12 @@ my $wait = <STDIN>;
 while ( my $line = <> ) {
     chomp ( $line );
     #print "$line\n";
-    my ($record) = &parse_tcb($line);
+    my ($record, $encpw) = &parse_tcb($line);
     unless ($record) {
 	warn "Unable to parse $line\n";
 	next;
     }
-    print Dumper $record;
+#    print Dumper $record;
     my $username = $record->{CRSID} || $record->{ENGID}; 
 #unless ($username) {
 #	print "crsid ", $record->{CRSID}, "\n";
@@ -80,7 +80,8 @@ while ( my $line = <> ) {
 #	die "No username in $line\n" unless $username;
 #}
     my $gecos = $record->{GECOS};
-    my $password = $record->{password};
+#    my $password = $record->{password};
+    my $status = $record->{status}->{STATUS_NAME};
     ##my $user_obj = $users_rs->find($record,
     ##    { key => 'both'},
     ##);
@@ -90,14 +91,15 @@ while ( my $line = <> ) {
         "disabled","placeholder","not-set",
         "rhosts-only","setuid-only","group-web");
     my $match_string = join ("|",@notlive);
-    #print "Username => $username\n";
-    #print "Password => $password\n";
-    if ( $password =~ m/^($match_string)/) {
+#print "Username => $username\n";
+#print "Password => $encpw\n";
+#print "Status => $status\n";
+    if ( $status =~ m/^($match_string)/) {
         printf ("%-10s not AD enabled\n", $username);
         next;
     }
     printf ("Added to AD %-10s %-10s\n", $username, $gecos);
-    &ad_update_or_create_user($username, $password, $gecos) if $makechanges;
+    &ad_update_or_create_user($username, $encpw, $gecos) if $makechanges;
 }
 
 

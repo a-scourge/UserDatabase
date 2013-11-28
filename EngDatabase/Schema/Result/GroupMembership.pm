@@ -13,9 +13,9 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('GROUP_MEMBERSHIP_ID');
 __PACKAGE__->add_unique_constraints(
-#    primarygroup     => [qw/GROUP_MEMBERSHIP_ID PRIMARY_GROUP/],
-#    affiliationgroup => [qw/GROUP_MEMBERSHIP_ID AFFILIATION_GROUP/],
-    both             => [qw/AFFILIATION_GROUP PRIMARY_GROUP/],
+    primarygroup     => [qw/USER_ID PRIMARY_GROUP/],
+    affiliationgroup => [qw/USER_ID AFFILIATION_GROUP/],
+    both             => [qw/USER_ID AFFILIATION_GROUP PRIMARY_GROUP/],
 );
 __PACKAGE__->belongs_to(
     'myuser',

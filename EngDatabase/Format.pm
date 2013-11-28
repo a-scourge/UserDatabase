@@ -51,6 +51,7 @@ sub parse_tcb {
       if ( $gid < 1000
         && $id !~ m/^(webadmin|webuser|dnsmaint|cvsuser|eximuser)$/ );
 
+    my $encpw = $tcb[8];
     my $status = $tcb[12];
     my $uid = $tcb[4];
     my $propagation = $tcb[26];
@@ -141,7 +142,7 @@ sub parse_tcb {
         $data{status}{STATUS_NAME} = $1;
         $data{STATUS_DATE} = $2;
     }
-    return ( \%data, $status );
+    return ( \%data, $encpw );
 }
 
 sub print_changes {

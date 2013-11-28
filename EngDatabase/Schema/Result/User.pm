@@ -38,8 +38,8 @@ __PACKAGE__->set_primary_key('USER_ID');
 __PACKAGE__->add_unique_constraints(
     both => [qw/ENGID CRSID/],
 
-    #ENGID => [qw/ENGID/],
-    #CRSID => [qw/CRSID/],
+    ENGID => [qw/ENGID/],
+    CRSID => [qw/CRSID/],
 );
 __PACKAGE__->has_many(
     'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
