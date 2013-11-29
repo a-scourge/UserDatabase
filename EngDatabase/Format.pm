@@ -5,8 +5,7 @@ use Data::Dumper;
 
 use Exporter qw(import);
 
-our @EXPORT_OK =
-  qw(print_changes compare_hash parse_tcb parse_reg
+our @EXPORT_OK = qw(print_changes compare_hash parse_tcb parse_reg
   parse_grp get_capabilities_from_propagation add_propagation);
 
 sub parse_grp {
@@ -16,27 +15,39 @@ sub parse_grp {
 
     my $group_name = $grp[0];
     my $gid        = $grp[2];
-    my @users      = split( /,/, $grp[3] ) if $grp[3];
+    my @users      = sort split( /,/, $grp[3] ) if $grp[3];
     my @usergroups;
-    sort @users;
-    while ( my $user = shift @users) {
-
-        print "User: $user Array: @users\n";
-        my $wait = <STDIN>;
+    #@users = sort @users;
+    while (my $user = shift @users) {
         my $crsid = $user;
         my $engid = $user;
-        if ( my ($dup) = grep(/^$engid\d+/, @users)) {
-            $crsid = $dup;
+
+        my @aliases;
+        #if ( my @aliases = map{s/^($engid\d+)$//; $crsid = $1} @users) {
+        #    print "Aliases: @aliases\n";
+        #    print "CRSID: $crsid\n";
+        #    #$crsid = shift @aliases;
+        #}
+        for (@users) {
+            if (/^$engid\d+$/) {
+                push @aliases, $_;
+                $crsid = $_;
+            }
         }
+        #$crsid = shift @aliases;
+        # now we have crsid, delete all other mentions:
+        @users = grep ! /$engid/, @users; 
+        #print "Found $crsid from @users\n";
+        #my $wait = <STDIN>;
         my $usergroup = {
             myuser => {
-                ENGID => $user,
-                CRSID => $user,
+                ENGID => $engid,
+                CRSID => $crsid,
             }
         };
-        push (@usergroups, $usergroup);
+        push( @usergroups, $usergroup );
     }
-    my %data       = (
+    my %data = (
         'GROUP_NAME' => $group_name,
         'GID'        => $gid,
         'usergroups' => \@usergroups,
@@ -52,29 +63,28 @@ sub parse_tcb {
 
     # The following line is good for csv file made by John
     ( my @tcb ) = split( /,/, $line );
-    my $gid    = $tcb[5];            # the tcb GID field
-    my $crsid  = $tcb[1];
-    my $engid  = $tcb[0];
-    my $id     = $crsid || $engid;
+    my $gid   = $tcb[5];            # the tcb GID field
+    my $crsid = $tcb[1];
+    my $engid = $tcb[0];
+    my $id    = $crsid || $engid;
     return
       if ( $gid < 1000
         && $id !~ m/^(webadmin|webuser|dnsmaint|cvsuser|eximuser)$/ );
 
-    my $encpw = $tcb[8];
-    my $status = $tcb[12];
-    my $uid = $tcb[4];
+    my $encpw       = $tcb[8];
+    my $status      = $tcb[12];
+    my $uid         = $tcb[4];
     my $propagation = $tcb[26];
     ## now to get capabilities:
     my $capabilities = {};
     if ($::statuses_rs) {
-        my $status_obj = $::statuses_rs->find_or_new(
-            {
-                STATUS_NAME => $status,
-            }
-        ); 
+        my $status_obj =
+          $::statuses_rs->find_or_new( { STATUS_NAME => $status, } );
 
-        $capabilities =  $status_obj->get_capabilities;
-        if (my $propstring_capabilities = &get_capabilities_from_propagation($propagation)) {
+        $capabilities = $status_obj->get_capabilities;
+        if ( my $propstring_capabilities =
+            &get_capabilities_from_propagation($propagation) )
+        {
             $capabilities = { %$capabilities, %$propstring_capabilities };
         }
     }
@@ -89,12 +99,14 @@ sub parse_tcb {
     if ( $uid == $gid ) {
         $primary_groupname = $id;
     }
+
     #otherwise, between 4k and 200k, add 100k
     else {
         if ( ( $gid >= 4000 ) && ( $uid < 200_000 ) ) {
             $aff_gid = $gid;
             $pri_gid = $uid + 100_000;
         }
+
         #but if above 200k, don't add 100k
         if ( $uid >= 200_000 ) {
             $aff_gid = $gid;
@@ -115,11 +127,9 @@ sub parse_tcb {
         HOMEDIR              => $tcb[7],
         PASSWORD_EXPIRY_DATE => ( $tcb[13] + 129600000 ),
         PROPAGATION          => $propagation,
-        capabilities        =>  $capabilities,
-        status               => {
-            STATUS_NAME     => $tcb[12],
-        },
-        userattributes      => [
+        capabilities         => $capabilities,
+        status               => { STATUS_NAME => $tcb[12], },
+        userattributes       => [
             {
                 ATTRIBUTE_VALUE          => "tcb import",
                 ATTRIBUTE_EFFECTIVE_DATE => $tcb[13],
@@ -129,25 +139,31 @@ sub parse_tcb {
         ],
     );
     if ( defined $pri_gid ) {
-        push (@{$data{usergroups}} , {
-            PRIMARY_GROUP => 1,
-            AFFILIATION_GROUP => 0,
-            mygroup     => {
-                GID        => $pri_gid,
-                GROUP_NAME => $primary_groupname,
+        push(
+            @{ $data{usergroups} },
+            {
+                PRIMARY_GROUP     => 1,
+                AFFILIATION_GROUP => 0,
+                mygroup           => {
+                    GID        => $pri_gid,
+                    GROUP_NAME => $primary_groupname,
+                }
             }
-        });
+        );
     }
     if ( defined $aff_gid ) {
-        push (@{$data{usergroups}} , { 
-                PRIMARY_GROUP => 0,
+        push(
+            @{ $data{usergroups} },
+            {
+                PRIMARY_GROUP     => 0,
                 AFFILIATION_GROUP => 1,
-                mygroup => {
-                    GID => $aff_gid,
-                },
-            });
+                mygroup           => { GID => $aff_gid, },
+            }
+        );
     }
-    if ( defined $data{status}{STATUS_NAME} && $data{status}{STATUS_NAME} =~ /(^\w*)-(\d{8})/ ) {
+    if ( defined $data{status}{STATUS_NAME}
+        && $data{status}{STATUS_NAME} =~ /(^\w*)-(\d{8})/ )
+    {
         $data{status}{STATUS_NAME} = $1;
         $data{STATUS_DATE} = $2;
     }
@@ -260,6 +276,7 @@ sub get_capabilities_from_propagation {
     return $capabilities;
 
 }
+
 sub add_propagation {
     my $user_href = shift;
     $_ = $user_href->{PROPAGATION};

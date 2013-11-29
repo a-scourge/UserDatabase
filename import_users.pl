@@ -86,7 +86,6 @@ my $attributes_rs = $schema->resultset('Attribute')->search( undef, { cache => 1
 
 while ( my $line = <>) {
     next unless (my ($input_href, $password) = &parse_tcb( $line )); # parse may return null
-    my $password = delete $input_href->{password};
     my $username = $input_href->{CRSID} || $input_href->{ENGID};
     #print Dumper $input_href;
     #my $wait = <STDIN>;
@@ -95,11 +94,19 @@ while ( my $line = <>) {
     #if ($input_href->{capabilities}{AD_ENABLED} == 1 && $makechanges) {
     #    ad_update_or_create_user($username, $password, $input_href->{GECOS});
     #}
-    if (my $db_user = $users_rs->find($input_href,{
+    if (my $db_user = $users_rs->find(
+            #$input_href,{
+            { CRSID => $input_href->{CRSID}, ENGID => $input_href->{ENGID} },
+            {
+                #where => {
+                #    -or => [
+                #        CRSID => $input_href->{CRSID},
+                #        ENGID => $input_href->{ENGID},
+                #    ],
+                #},
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
-        key => 'both',
-        } 
-    )) {
+                key => 'both',
+            })) {
         print "Changes for $username: ";
 
         $input_href->{status} = $statuses_rs->find_or_new({

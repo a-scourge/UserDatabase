@@ -78,8 +78,8 @@ my $guard = $schema->txn_scope_guard;
 while ( my $line = <>) {
     chomp $line;
     next unless (my $input_href = parse_grp( $line )); # parse may return null
-    print Dumper $input_href;
-    my $wait = <STDIN>;
+    #print Dumper $input_href;
+    #my $wait = <STDIN>;
     my $db_group = $groups_rs->find_or_new($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'GID',

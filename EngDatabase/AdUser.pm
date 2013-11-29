@@ -12,7 +12,7 @@ our @EXPORT_OK =
 
 my $pwenc = "/usr/local/sbin/pwenc" unless $::pwenc;
 
-my $RHcfg = readcfg('/etc/ad.conf');
+my $RHcfg = readcfg('./ad.conf');
 
 my $domain_name = $$RHcfg{ldap}{domain};
 my $ldapstr = "ldaps://$$RHcfg{ldap}{server}";
