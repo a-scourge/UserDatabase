@@ -18,7 +18,16 @@ sub parse_grp {
     my $gid        = $grp[2];
     my @users      = split( /,/, $grp[3] ) if $grp[3];
     my @usergroups;
-    foreach my $user (@users) {
+    sort @users;
+    while ( my $user = shift @users) {
+
+        print "User: $user Array: @users\n";
+        my $wait = <STDIN>;
+        my $crsid = $user;
+        my $engid = $user;
+        if ( my ($dup) = grep(/^$engid\d+/, @users)) {
+            $crsid = $dup;
+        }
         my $usergroup = {
             myuser => {
                 ENGID => $user,

@@ -95,8 +95,14 @@ while ( my $line = <> ) {
 #print "Password => $encpw\n";
 #print "Status => $status\n";
     if ( $status =~ m/^($match_string)/) {
-        printf ("%-10s not AD enabled\n", $username);
-        next;
+        printf ("%-10s not live - deleting from AD\n", $username);
+	    next unless $makechanges;
+	    # Delete user in AD if they exist there
+	    my $aduser = ad_finduser($username);
+	    next unless $aduser;
+	    $aduser->delete;
+	    $aduser->save;
+	    next;
     }
     printf ("Added to AD %-10s %-10s\n", $username, $gecos);
     &ad_update_or_create_user($username, $encpw, $gecos) if $makechanges;

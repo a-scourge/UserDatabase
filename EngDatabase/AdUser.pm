@@ -12,22 +12,23 @@ our @EXPORT_OK =
 
 my $pwenc = "/usr/local/sbin/pwenc" unless $::pwenc;
 
-my $domain_name = "DC=ad,DC=eng,DC=cam,DC=ac,DC=uk";
+my $RHcfg = readcfg('/etc/ad.conf');
 
-#sub decode_password { my $crypt = shift;
-#    chomp( my $password = `$::pwenc -d $crypt` );
-#    return $password;
-#}
+my $domain_name = $$RHcfg{ldap}{domain};
+my $ldapstr = "ldaps://$$RHcfg{ldap}{server}";
+my $ldapuser = $$RHcfg{ldap}{admin};
+my $ldappw = $$RHcfg{ldap}{password};
+
 my $ad;
 my $result;
 
 sub get_ad_prod {
     unless ( defined $ad ) {
-        $ad = Net::LDAP->new( 'ldaps://colada.eng.cam.ac.uk', )
+        $ad = Net::LDAP->new( $ldapstr )
           or die "$@";
     }
     unless ( defined $result ) {
-        $result = $ad->bind( 'AD\ad_admin', password => 'Stihl123' );
+        $result = $ad->bind( $ldapuser, password => $ldappw );
         if ( $result->code ) {
             warn "Can't connect:", $result->error;
         }
@@ -146,7 +147,7 @@ sub enable {
 }
 sub disable {
     my $self = shift;
-    $self->replace( userAccountControl => 512 );
+    $self->replace( userAccountControl => 2 );
 }
 
 sub setgecos {
@@ -158,10 +159,12 @@ sub setgecos {
     $gecos =~ /^([\w\-\.]*)\s*?([\w\-]*?)$/;
     my ( $first, $last ) = ( $1, $2 );
     my $middle;
-    if ( $first =~ /^(\w)\.(\w\.?)*\.$/ ) {
-        ( $first, $middle ) = ( $1, $2 );
+    if ( $first ) {
+        if ( $first =~ /^(\w)\.(\w\.?)*\.$/ ) {
+            ( $first, $middle ) = ( $1, $2 );
+        }
+        else { $first =~ s/\.// }
     }
-    else { $first =~ s/\.// }
 
     #$gecos .= "(${username})";
     my $rdn = "CN=$gecos($username)";
@@ -194,6 +197,19 @@ sub setpassword {
     if ( $password && $password ne "" and $ad->is_AD || $ad->is_ADAM ) {
         $ad->reset_ADpassword( $dn, $password );
     }
+}
+
+sub readcfg {
+	my ($file) = @_;
+
+        # Process the contents of the config file
+	my $RHcfg = do($file);
+	# Check for errors
+	die "ERROR: Can't compile $file: $@\n" if $@;
+	die "ERROR: Can't read $file: $!\n" unless defined $RHcfg;
+	die "ERROR: Can't process $file\n" unless $RHcfg;
+
+	return $RHcfg;
 }
 
 1;

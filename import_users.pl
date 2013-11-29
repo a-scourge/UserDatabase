@@ -92,9 +92,9 @@ while ( my $line = <>) {
     #my $wait = <STDIN>;
 
 
-    if ($input_href->{capabilities}{AD_ENABLED} == 1 && $makechanges) {
-        ad_update_or_create_user($username, $password, $input_href->{GECOS});
-    }
+    #if ($input_href->{capabilities}{AD_ENABLED} == 1 && $makechanges) {
+    #    ad_update_or_create_user($username, $password, $input_href->{GECOS});
+    #}
     if (my $db_user = $users_rs->find($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'both',

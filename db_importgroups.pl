@@ -39,7 +39,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testgroups.db');
 print @ARGV . "\n" if $opt_debug;
 $schema->storage->debug(1) if $opt_debug;
 
@@ -68,7 +68,7 @@ my $users_rs = $schema->resultset('User')->search(undef,
 );
 
 print "Proposed changes:\n" unless $makechanges;
-#my @populate_array;
+my @populate_array;
 
 my $guard = $schema->txn_scope_guard;
 
@@ -77,44 +77,47 @@ my $guard = $schema->txn_scope_guard;
 
 while ( my $line = <>) {
     chomp $line;
-    next unless (my ($input_href) = parse_grp( $line )); # parse may return null
-    my $db_group = $groups_rs->find($input_href,{
+    next unless (my $input_href = parse_grp( $line )); # parse may return null
+    print Dumper $input_href;
+    my $wait = <STDIN>;
+    my $db_group = $groups_rs->find_or_new($input_href,{
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         key => 'GID',
         } 
     ); 
-    print "Changes for $input_href->{GID} : ";
-    foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
-        my $user_href = delete $usergroup_href->{myuser};
-        if ($usergroup_href->{myuser} = $users_rs->search({
-            -or => [
-                CRSID => $user_href->{CRSID},
-                ENGID => $user_href->{ENGID},
-            ],
-        })->single) {
-            print "Found a user!!!!\n";
-            $usergroup_href->{myuser}->update($user_href);
-        }
-        else {
-            delete $usergroup_href->{myuser};
-        }
+    #if ($db_group->in_storage) {
+        print "Changes for $input_href->{GID} : ";
+        foreach my $usergroup_href ( @{delete $input_href->{usergroups}}) {
+            my $user_href = delete $usergroup_href->{myuser};
+            if ($usergroup_href->{myuser} = $users_rs->search({
+                -or => [
+                    CRSID => $user_href->{CRSID},
+                    ENGID => $user_href->{ENGID},
+                ],
+            })->single) {
+                print "Found a user!!!!\n";
+                $usergroup_href->{myuser}->update($user_href);
+                my $usergroup_obj = $db_group->update_or_create_related(
+                    'usergroups',
+                    $usergroup_href,
+                    #{key => 'both' }
+                );
+            }
+            #else {
+            #    delete $usergroup_href->{myuser};
+            #}
 
-        my $usergroup_obj = $db_group->update_or_create_related('usergroups',
-            $usergroup_href,
-            #{key => 'both' }
-        );
-    }
-    $db_group->update($input_href);
-    print "\n";
-
-    }
-    else {
-        print "$input_href->{GID} add record\n";
-        #$input_href->{STATUS_ID} = $input_href->{status}->STATUS_ID;
-        #print Dumper $input_href;
-        #delete $input_href->{capabilities};
-        push (@populate_array, $input_href);
-    }
+        }
+        $db_group->insert;
+        print "\n";
+        #}
+        #else {
+        #    print "$input_href->{GID} add record\n";
+        #    #$input_href->{STATUS_ID} = $input_href->{status}->STATUS_ID;
+        #    #print Dumper $input_href;
+        #    #delete $input_href->{capabilities};
+        #    push (@populate_array, $input_href);
+        #}
 
 }
 
