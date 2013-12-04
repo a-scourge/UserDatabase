@@ -1,4 +1,4 @@
-package EngDatabase::Schema::Result::Status;
+package LinWin::Schema::Result::Status;
 use base qw/DBIx::Class::Core/;
 __PACKAGE__->table('PP_STATUSES');
 __PACKAGE__->add_column(
@@ -33,7 +33,7 @@ __PACKAGE__->set_primary_key('STATUS_ID');
 __PACKAGE__->add_unique_constraints( [qw/STATUS_NAME/] );
 
 __PACKAGE__->has_many(
-    users => 'EngDatabase::Schema::Result::User',
+    users => 'LinWin::Schema::Result::User',
     { 'foreign.STATUS_ID' => 'self.STATUS_ID' }
 );
 

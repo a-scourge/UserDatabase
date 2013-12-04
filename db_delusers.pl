@@ -2,11 +2,11 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
-use EngDatabase::Format(qw /parse_tcb/);
+use LinWin::Format(qw /parse_tcb/);
 my $db_delusers_VER = '0.1';
 
 my $opt_debug = 0;
@@ -36,7 +36,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testimport2.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/testimport2.db');
 
 my @uids;
 while (<>) {

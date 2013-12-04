@@ -3,7 +3,7 @@
 use warnings;
 use lib 'lib';
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
@@ -39,7 +39,7 @@ print
 
 # we are going to create some statuses:
 #
-my $schema = EngDatabase::Schema->connect("dbi:SQLite:$dbfile");
+my $schema = LinWin::Schema->connect("dbi:SQLite:$dbfile");
 
 while (<>) {
 

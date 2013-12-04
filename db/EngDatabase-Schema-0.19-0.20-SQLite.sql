@@ -1,4 +1,4 @@
--- Convert schema 'db/EngDatabase-Schema-0.19-SQLite.sql' to 'db/EngDatabase-Schema-0.20-SQLite.sql':;
+-- Convert schema 'db/LinWin-Schema-0.19-SQLite.sql' to 'db/LinWin-Schema-0.20-SQLite.sql':;
 
 BEGIN;
 

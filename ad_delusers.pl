@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 use Net::LDAP;
-use EngDatabase::Format qw(parse_tcb);
+use LinWin::Format qw(parse_tcb);
 
 ## begin user documentation stuff
 use Getopt::Long;

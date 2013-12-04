@@ -1,6 +1,6 @@
-package EngDatabase::Schema::Result::Group;
+package LinWin::Schema::Result::Group;
 use base qw/DBIx::Class::Core/;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +LinWin::LinWinBase/);
 __PACKAGE__->table('PP_GROUPS');
 __PACKAGE__->add_columns(
     'GROUP_ID'   => { data_type => 'integer', size => '11', },
@@ -17,16 +17,16 @@ __PACKAGE__->set_primary_key('GROUP_ID');
 __PACKAGE__->add_unique_constraints( GID => [qw/GID/] );
 __PACKAGE__->has_many(
     'usergroups',
-    'EngDatabase::Schema::Result::GroupMembership',
+    'LinWin::Schema::Result::GroupMembership',
     { 'foreign.GROUP_ID' => 'self.GROUP_ID' }
 );
 __PACKAGE__->many_to_many( 'users' => 'usergroups', 'myuser' );
 __PACKAGE__->has_many(
-    primaryusers => 'EngDatabase::Schema::Result::User',
+    primaryusers => 'LinWin::Schema::Result::User',
     { 'foreign.PRIMARY_GROUP' => 'self.GROUP_ID' }
 );
 __PACKAGE__->has_many(
-    affiliationusers => 'EngDatabase::Schema::Result::User',
+    affiliationusers => 'LinWin::Schema::Result::User',
     { 'foreign.PRIMARY_GROUP' => 'self.GROUP_ID' }
 );
 

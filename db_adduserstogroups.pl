@@ -2,8 +2,8 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
-use EngDatabase::Format qw(parse_grp);
+use LinWin::Schema;
+use LinWin::Format qw(parse_grp);
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
@@ -40,7 +40,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/test.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/test.db');
 print @ARGV . "\n" if $opt_debug;
 $schema->storage->debug(1) if $opt_debug;
 

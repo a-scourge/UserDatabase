@@ -1,4 +1,4 @@
--- Convert schema 'db/EngDatabase-Schema-0.21-MySQL.sql' to 'EngDatabase::Schema v0.22':;
+-- Convert schema 'db/LinWin-Schema-0.21-MySQL.sql' to 'LinWin::Schema v0.22':;
 
 BEGIN;
 

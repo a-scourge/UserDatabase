@@ -1,4 +1,4 @@
-package EngDatabase::Schema::Result::Attribute;
+package LinWin::Schema::Result::Attribute;
 use base qw/DBIx::Class::Core/;
 __PACKAGE__->table('PP_ATTRIBUTES');
 __PACKAGE__->add_column(
@@ -9,7 +9,7 @@ __PACKAGE__->set_primary_key('ATTRIBUTE_ID');
 __PACKAGE__->add_unique_constraint( name => [qw/ATTRIBUTE_NAME/] );
 
 __PACKAGE__->has_many(
-    userattributes => 'EngDatabase::Schema::Result::Attribute',
+    userattributes => 'LinWin::Schema::Result::Attribute',
     { 'foreign.ATTRIBUTE_ID' => 'self.ATTRIBUTE_ID' }
 );
 __PACKAGE__->many_to_many( users => 'userattributes', 'user' );

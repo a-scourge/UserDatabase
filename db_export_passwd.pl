@@ -2,7 +2,7 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
@@ -38,7 +38,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/test.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/test.db');
 $schema->storage->debug(1) if $opt_debug;
 
 # This program produces a passwd file for each propagation group. Therefore we

@@ -1,0 +1,58 @@
+=head1 UserDatabase
+
+A wrapper to LinWin, which provides OO interfaces to AD servers and a database
+using Net::LDAP and DBIx::Class
+
+=head2 VERSION
+
+version 0.01
+
+This distribution includes the following modules:
+
+    LinWin::Schema
+    LinWin::AdUser
+    LinWin::Format
+    LinWin::WinLinBase
+
+=head2 SYNOPSIS
+
+Populate, update, and modify a userdatabase.
+
+  use UserDatabase;
+  my $aduser = UserDatabase::LinWin::AdUser->ad_finduser($username);
+
+  use UserDatabase::LinWin::Format qw(parse_tcb);
+  while ( my $line = <> ) {
+    chomp $line;
+    my $user_href = parse_tcb($line);
+    push (@populate_array, $user_href);
+  }
+
+=head2 INSTALLATION
+
+To install this module, just download it.
+
+
+=head2 DEPENDANCIES
+
+This modules requires these other modules and libraries,
+some of which may be provided in the lib subdir:
+
+    DBIx::Class
+    Net::LDAP
+    Net::LDAP::Entry
+    Net::LDAP::Extra::AD
+
+=head2 SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+  perldoc ./LinWin/AdUser.pm
+
+=head2 COPYRIGHT AND LICENSE
+
+Copyright (C) 2013 Gavin Rogers (Praxeology Ltd)
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.

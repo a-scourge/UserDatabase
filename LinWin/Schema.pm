@@ -1,4 +1,4 @@
-package EngDatabase::Schema;
+package LinWin::Schema;
 use warnings;
 use strict;
 

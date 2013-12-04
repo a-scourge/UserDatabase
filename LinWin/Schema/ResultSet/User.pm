@@ -1,8 +1,8 @@
-package EngDatabase::Schema::ResultSet::User;
+package LinWin::Schema::ResultSet::User;
 use strict;
 use warnings;
 use base qw/DBIx::Class::ResultSet/;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +LinWin::LinWinBase/);
 
 sub ad_enabled {
     my $self = shift;

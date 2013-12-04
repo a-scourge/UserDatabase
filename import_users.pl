@@ -3,9 +3,9 @@
 use warnings;
 use strict;
 use lib 'lib';
-use EngDatabase::Schema;
-use EngDatabase::Format qw(print_changes compare_hash add_propagation parse_tcb);
-use EngDatabase::AdUser qw(ad_update_or_create_user);
+use LinWin::Schema;
+use LinWin::Format qw(print_changes compare_hash add_propagation parse_tcb);
+use LinWin::AdUser qw(ad_update_or_create_user);
 #use DBIx::Class::ResultClass::HashRefInflator;
 ## begin user documentation stuff
 use Data::Dumper;
@@ -44,7 +44,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testgroups.db', {
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/testgroups.db', {
         quote_names => 1 });
 print @ARGV . "\n" if $opt_debug;
 my @poparray;

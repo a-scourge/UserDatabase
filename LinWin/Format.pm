@@ -1,7 +1,24 @@
-package EngDatabase::Format;
+package LinWin::Format;
 use strict;
 use warnings;
-use Data::Dumper;
+#use Data::Dumper;
+
+=head1 NAME
+
+LinWin::Format - parses input files into hashrefs
+
+=head1 SYNOPSIS
+
+  use LinWin::Format qw(parse_tcb parse_grp);
+  my $user_href = parse_tcb($line);
+  my $group_href = parse_grp($line);
+
+=head1 DESCRIPTION
+
+This module is just a catch-all for some messy parsing logic.
+
+
+=cut
 
 use Exporter qw(import);
 

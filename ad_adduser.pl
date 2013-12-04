@@ -3,7 +3,7 @@
 use lib './lib/';
 use warnings;
 use strict;
-use EngDatabase::AD qw(ad_unbind ad_adduser);
+use LinWin::AD qw(ad_unbind ad_adduser);
 
 ## begin user documentation stuff
 use Getopt::Long;

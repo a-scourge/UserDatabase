@@ -2,10 +2,10 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 
 ## Get a resultset for users who have the word "purged" in homedir:
 my $guys_rs = $schema->resultset('User')->search_like({ HOMEDIR => '%purged%' });

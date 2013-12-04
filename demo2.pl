@@ -3,9 +3,9 @@
 use warnings;
 use strict;
 
-use EngDatabase::Schema;
+use LinWin::Schema;
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 
 ## Select a row, then access a record from it:
 print "We're going to look for the username for uid 27:\n";

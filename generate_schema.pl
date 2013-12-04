@@ -6,7 +6,7 @@ use lib './lib/';
 
 use Pod::Usage;
 use Getopt::Long;
-use EngDatabase::Schema;
+use LinWin::Schema;
 
 my ( $preversion, $help );
 GetOptions(
@@ -14,7 +14,7 @@ GetOptions(
         ) or die pod2usage;
 
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 my $version = $schema->schema_version();
 
 if ($version && $preversion) {

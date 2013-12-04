@@ -2,7 +2,7 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
@@ -35,7 +35,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 
 my $rs = $schema->resultset('Status')->search( { } )->hashref_array;
 print Dumper $rs;

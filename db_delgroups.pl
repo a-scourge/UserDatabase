@@ -2,11 +2,11 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;
-use EngDatabase::Format(qw /parse_grp/);
+use LinWin::Format(qw /parse_grp/);
 my $db_delgroups_VER = '0.1';
 
 my $opt_debug = 0;
@@ -36,7 +36,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/test.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/test.db');
 print @ARGV . "\n" if $opt_debug;
 #my $groups_rs = $schema->resultset('Group')->search(undef, { cache => 1});
 my @gids;

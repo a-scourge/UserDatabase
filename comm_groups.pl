@@ -2,7 +2,7 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Format qw(parse_grp);
+use LinWin::Format qw(parse_grp);
 ## begin user documentation stuff
 use Getopt::Long;
 use Pod::Usage;

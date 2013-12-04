@@ -2,9 +2,9 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
+use LinWin::Schema;
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 
 $schema->storage->debug(1);
 

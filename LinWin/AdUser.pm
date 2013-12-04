@@ -1,4 +1,4 @@
-package EngDatabase::AdUser;
+package LinWin::AdUser;
 use lib './lib/';
 use base qw( Net::LDAP::Entry );
 use Net::LDAP::RootDSE qw( root_dse );
@@ -14,7 +14,7 @@ LinWin::AdUser - class represents a user in AD
 =head1 SYNOPSIS
 
   use lib 'lib';
-  use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
+  use LinWin::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
 
   $aduser = ad_finduser($username);
   $aduser->setpassword($password);
@@ -162,7 +162,7 @@ sub ad_finduser {
 
     #otherwise, get the entry and return it:
     my $user_obj = $result->shift_entry();
-    bless $user_obj, 'EngDatabase::AdUser';
+    bless $user_obj, 'LinWin::AdUser';
     return $user_obj;
 }
 
@@ -186,7 +186,7 @@ sub ad_adduser {
 "CN=Person,CN=Schema,CN=Configuration,dc=ad,dc=eng,dc=cam,dc=ac,dc=uk",
         userAccountControl => 2    #disable the regular user, use 512 to enable
     );
-    bless( $user_obj, 'EngDatabase::AdUser' );
+    bless( $user_obj, 'LinWin::AdUser' );
     $user_obj->setgecos($gecos);
     $user_obj->save;
 

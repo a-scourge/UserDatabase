@@ -1,7 +1,7 @@
-package EngDatabase::Schema::Result::User;
+package LinWin::Schema::Result::User;
 use strict;
 use warnings;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +LinWin::LinWinBase/);
 use base qw/DBIx::Class::Core/;
 use Data::Dumper;
 __PACKAGE__->table('PP_USERS');
@@ -42,11 +42,11 @@ __PACKAGE__->add_unique_constraints(
     CRSID => [qw/CRSID/],
 );
 __PACKAGE__->has_many(
-    'usergroups' => 'EngDatabase::Schema::Result::GroupMembership',
+    'usergroups' => 'LinWin::Schema::Result::GroupMembership',
     { 'foreign.USER_ID' => 'self.USER_ID' },
 );
 __PACKAGE__->has_one(
-    'primarygroup' => 'EngDatabase::Schema::Result::Group',
+    'primarygroup' => 'LinWin::Schema::Result::Group',
     sub {
         my $args = shift;
         return {
@@ -57,7 +57,7 @@ __PACKAGE__->has_one(
     }
 );
 __PACKAGE__->has_one(
-    'affiliationgroup' => 'EngDatabase::Schema::Result::Group',
+    'affiliationgroup' => 'LinWin::Schema::Result::Group',
     sub {
         my $args = shift;
         return {
@@ -71,7 +71,7 @@ __PACKAGE__->has_one(
 __PACKAGE__->many_to_many( 'groups' => 'usergroups', 'mygroup' );
 ## Statuses have many users. The other side to PP_STATUSES has_many is this belongs_to:
 __PACKAGE__->belongs_to(
-    status => 'EngDatabase::Schema::Result::Status',
+    status => 'LinWin::Schema::Result::Status',
     { 'foreign.STATUS_ID' => 'self.STATUS_ID' },
     {
         cascade_delete => 0,   # don't delete the status when you delete a user!
@@ -81,7 +81,7 @@ __PACKAGE__->belongs_to(
 
 ## Each user has a row in the capabilities table. A one-to-one relationship
 __PACKAGE__->might_have(          # we should be able to change this to a has_one
-    capabilities => 'EngDatabase::Schema::Result::UserCapabilities',
+    capabilities => 'LinWin::Schema::Result::UserCapabilities',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     {
         cascade_delete => 1,    # do delete the cap when you delete a user!
@@ -91,7 +91,7 @@ __PACKAGE__->might_have(          # we should be able to change this to a has_on
 ## Each user can have many many attributes added
 # see the belongs_to relationship in UserAttributes
 __PACKAGE__->has_many(
-    userattributes => 'EngDatabase::Schema::Result::UserAttribute',
+    userattributes => 'LinWin::Schema::Result::UserAttribute',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     {
         cascade_delete => 1,    # do delete the attr when you delete a user!
@@ -100,7 +100,7 @@ __PACKAGE__->has_many(
 );
 __PACKAGE__->many_to_many( attributes => 'userattributes', 'attribute' );
 #__PACKAGE__->has_one(
-#    'passwordchanged' => 'EngDatabase::Schema::Result::UserAttribute',
+#    'passwordchanged' => 'LinWin::Schema::Result::UserAttribute',
 #    { 'foreign.USER_ID' => 'self.USER_ID' },
 #    { where             => { ATTRIBUTE_ID => 1 } },
 #);

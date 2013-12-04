@@ -1,8 +1,8 @@
-package EngDatabase::Schema::Result::UserCapabilities;
+package LinWin::Schema::Result::UserCapabilities;
 use strict;
 use warnings;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase
-    +EngDatabase::Test/);
+__PACKAGE__->load_components(qw/ +LinWin::LinWinBase
+    +LinWin::Test/);
 use base qw/DBIx::Class::Core/;
 __PACKAGE__->table('PP_USER_CAPABILITIES');
 __PACKAGE__->add_columns(
@@ -38,7 +38,7 @@ __PACKAGE__->add_unique_constraints(
     userid => [qw/USER_ID/],
 );
 __PACKAGE__->belongs_to(
-    user => 'EngDatabase::Schema::Result::User',
+    user => 'LinWin::Schema::Result::User',
     { 'foreign.USER_ID' => 'self.USER_ID' }
 );
 

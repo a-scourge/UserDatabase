@@ -1,6 +1,6 @@
-package EngDatabase::Schema::Result::GroupMembership;
+package LinWin::Schema::Result::GroupMembership;
 use base qw/DBIx::Class::Core/;
-__PACKAGE__->load_components(qw/ +EngDatabase::EngDatabaseBase/);
+__PACKAGE__->load_components(qw/ +LinWin::LinWinBase/);
 __PACKAGE__->table('PP_GROUP_MEMBERSHIPS');
 __PACKAGE__->add_columns(
     'GROUP_MEMBERSHIP_ID' => { data_type => 'integer', size => '11', },
@@ -19,7 +19,7 @@ __PACKAGE__->add_unique_constraints(
 );
 __PACKAGE__->belongs_to(
     'myuser',
-    'EngDatabase::Schema::Result::User',
+    'LinWin::Schema::Result::User',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     #{   proxy => [
     #        qw/ USER_ID ENGID CRSID UID GECOS HOMEDIR
@@ -29,7 +29,7 @@ __PACKAGE__->belongs_to(
 );
 __PACKAGE__->belongs_to(
     'mygroup',
-    'EngDatabase::Schema::Result::Group',
+    'LinWin::Schema::Result::Group',
     { 'foreign.GROUP_ID' => 'self.GROUP_ID' },
     {   
         cascade_update => 1,

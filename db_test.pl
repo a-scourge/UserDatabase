@@ -2,8 +2,8 @@
 #
 use warnings;
 use strict;
-use EngDatabase::Schema;
-use EngDatabase::Format qw(parse);
+use LinWin::Schema;
+use LinWin::Format qw(parse);
 use DateTime;
 ## begin user documentation stuff
 use Getopt::Long;
@@ -37,7 +37,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 print @ARGV . "\n" if $opt_debug;
 print "Please enter an engid:\n";
 chomp(my $engid = <STDIN> );

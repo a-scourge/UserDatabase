@@ -3,9 +3,9 @@
 use warnings;
 use strict;
 
-use EngDatabase::Schema;
+use LinWin::Schema;
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/example.db');
+my $schema = LinWin::Schema->connect('dbi:SQLite:db/example.db');
 
 my $buddy = $schema->resultset('User')->find(3);
 print $buddy->ENGID;

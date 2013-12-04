@@ -3,9 +3,9 @@
 use lib 'lib';
 use warnings;
 use strict;
-use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
-use EngDatabase::Format qw(parse_tcb);
-#use EngDatabase::Schema;
+use LinWin::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
+use LinWin::Format qw(parse_tcb);
+#use LinWin::Schema;
 use Data::Dumper;
 
 ## begin user documentation stuff
@@ -48,7 +48,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-#my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testfixed2.db');
+#my $schema = LinWin::Schema->connect('dbi:SQLite:db/testfixed2.db');
 #my $users_rs = $schema->resultset('User')->search(undef,
 #    {
 #        prefetch => 'capabilities',
