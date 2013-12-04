@@ -39,7 +39,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testgroups.db');
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testgroupsnew.db');
 print @ARGV . "\n" if $opt_debug;
 $schema->storage->debug(1) if $opt_debug;
 

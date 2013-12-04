@@ -44,7 +44,7 @@ print
   if defined $opt_versions;
 ## end user documentation stuff
 
-my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testnew.db', {
+my $schema = EngDatabase::Schema->connect('dbi:SQLite:db/testgroups.db', {
         quote_names => 1 });
 print @ARGV . "\n" if $opt_debug;
 my @poparray;
@@ -60,7 +60,7 @@ $schema->storage->debug(1) if $opt_debug;
 #print "Please press enter to start processing the tcb file:\n";
 my $prefetch_aref = [
             'capabilities',
-            'status',
+            #'status',
             {'userattributes' => 'attribute'},
             {'usergroups' => 'mygroup'},
         ];
@@ -68,7 +68,7 @@ my $prefetch_aref = [
 my $users_rs = $schema->resultset('User')->search(undef,
     { 
         prefetch => $prefetch_aref,
-        cache   => '1',
+        #cache   => '1',
     }
 );
 
@@ -95,8 +95,8 @@ while ( my $line = <>) {
     #    ad_update_or_create_user($username, $password, $input_href->{GECOS});
     #}
     if (my $db_user = $users_rs->find(
-            #$input_href,{
-            { CRSID => $input_href->{CRSID}, ENGID => $input_href->{ENGID} },
+            $input_href,
+                #{ CRSID => $input_href->{CRSID}, ENGID => $input_href->{ENGID} },
             {
                 #where => {
                 #    -or => [
@@ -106,7 +106,9 @@ while ( my $line = <>) {
                 #},
                 #result_class => 'DBIx::Class::ResultClass::HashRefInflator',
                 key => 'both',
-            })) {
+                #prefetch => $prefetch_aref,
+            },
+        )) {
         print "Changes for $username: ";
 
         $input_href->{status} = $statuses_rs->find_or_new({
@@ -135,7 +137,9 @@ while ( my $line = <>) {
                 {key => 'both' }
             );
         }
-        $db_user->capabilities->update( delete $input_href->{capabilities} );
+        #$db_user->capabilities->update( delete $input_href->{capabilities} );
+        $db_user->update_or_create_related('capabilities', delete
+            $input_href->{capabilities});
         #print Dumper $input_href;
         #my $wait = <STDIN>;
         $db_user->update($input_href);

@@ -67,24 +67,37 @@ my $wait = <STDIN>;
 while ( my $line = <> ) {
     chomp ( $line );
     #print "$line\n";
-    my ($record, $encpw) = &parse_tcb($line);
-    unless ($record) {
-	warn "Unable to parse $line\n";
-	next;
-    }
-#    print Dumper $record;
-    my $username = $record->{CRSID} || $record->{ENGID}; 
+#    my ($RHrecord, $encpw) = &parse_tcb($line);
+#    unless ($RHrecord) {
+#	warn "Unable to parse $line\n";
+#	next;
+#    }
+    # strip off quotes.
+    $line =~ s/"//g;
+    my @tcb = split ',', $line;
+    my $engid = $tcb[0];
+    next if $engid eq 'Engid';
+    my $crsid = $tcb[1];
+    my $gecos = $tcb[6];
+    my $encpw = $tcb[8];
+    my $status = $tcb[12];
+    my $pwdtime = $tcb[13];
+    my $username = $crsid || $engid;
+
+#    print Dumper $RHrecord;
+#    my $username = $RHrecord->{CRSID} || $RHrecord->{ENGID}; 
 #unless ($username) {
-#	print "crsid ", $record->{CRSID}, "\n";
-#	print "engid ", $record->{ENGID}, "\n";
+#	print "crsid ", $RHrecord->{CRSID}, "\n";
+#	print "engid ", $RHrecord->{ENGID}, "\n";
 #	die "No username in $line\n" unless $username;
 #}
-    my $gecos = $record->{GECOS};
-#    my $password = $record->{password};
-    my $status = $record->{status}->{STATUS_NAME};
-    ##my $user_obj = $users_rs->find($record,
+#    my $gecos = $RHrecord->{GECOS};
+#    my $password = $RHrecord->{password};
+#    my $status = $RHrecord->{status}->{STATUS_NAME};
+    ##my $user_obj = $users_rs->find($RHrecord,
     ##    { key => 'both'},
     ##);
+    my $aduser = ad_finduser($username);
     my @notlive =
     ("purge-noshow","purge-wait","expected",
         "returning","reinstated","suspended",
@@ -95,16 +108,37 @@ while ( my $line = <> ) {
 #print "Password => $encpw\n";
 #print "Status => $status\n";
     if ( $status =~ m/^($match_string)/) {
+	# If user is not live and not in AD, nothing to do.
+	next unless $aduser;
+	# Otherwise we should delete the user from AD
         printf ("%-10s not live - deleting from AD\n", $username);
-	    next unless $makechanges;
-	    # Delete user in AD if they exist there
-	    my $aduser = ad_finduser($username);
-	    next unless $aduser;
-	    $aduser->delete;
-	    $aduser->save;
-	    next;
+	next unless $makechanges;
+	$aduser->rmuser;
+	next;
     }
-    printf ("Added to AD %-10s %-10s\n", $username, $gecos);
+    if ($aduser) {
+	# Update existing AD user record as required.
+	# DisplayName
+	my $displayname = $aduser->get_value('displayName');
+	unless ($displayname eq $gecos) {
+	    print "Setting AD displayname for $username to $gecos\n";
+	    $aduser->setgecos($gecos) if $makechanges;
+	}
+
+	# Password
+	my $pwdlastset = $aduser->get_value('pwdLastSet');
+	# http://support.citrix.com/article/CTX109645
+	my $adpwdtime = int ($pwdlastset/10000000 - 11644473600);
+	# recover password last changed timestamp.
+#	my $pwdtime = 
+#		$RHrecord->{userattributes}[0]->{ATTRIBUTE_EFFECTIVE_DATE};
+	if ($pwdtime > $adpwdtime) {
+	    print "Setting AD password for $username\n";
+	    $aduser->setpassword($encpw) if $makechanges;
+	}
+	next;
+    } 
+    printf ("Adding to AD %-10s %-10s\n", $username, $gecos);
     &ad_update_or_create_user($username, $encpw, $gecos) if $makechanges;
 }
 

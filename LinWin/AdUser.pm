@@ -6,6 +6,107 @@ use Net::LDAP::Extra qw(AD);
 
 use strict;
 use warnings;
+
+=head1 NAME
+
+LinWin::AdUser - class represents a user in AD
+
+=head1 SYNOPSIS
+
+  use lib 'lib';
+  use EngDatabase::AdUser qw(ad_unbind ad_update_or_create_user ad_finduser);
+
+  $aduser = ad_finduser($username);
+  $aduser->setpassword($password);
+  $aduser->setgecos($gecos);
+  $display_name = $aduser->get_value('displayName');
+
+=head1 DESCRIPTION
+
+A class which represents a AD user. Uses Net::LDAP::Search to find a user
+based on sAMAccountName (the authenticaltion username). Inherits methods from Net::LDAP::Entry
+
+Configuration is set in a hashref in $RHcfg. Also, set $pwenc for a local
+pwdecrypt program.
+
+=head1 CONSTRUCTORS
+
+=head2 ad_finduser
+
+  my $aduser = ad_finduser($username);
+
+Searches the AD server for a user record, where $username matches the
+sAMAccountname on the AD server. This is the AD authentication name. Returns a
+Net::LDAP::Entry object re-blessed as a AdUser
+
+head2 ad_adduser
+
+  my $aduser = ad_adduser($username,$password,$gecos);
+
+Creates a new object, sets the gecos (using the method described below), saves
+it to the server (as a disabled user), then sets the password, which then
+allows it to enable it (AD requires this little dance).
+
+=head2 ad_update_or_create_user
+
+  my $aduser = ad_update_or_create_user($username,$password,$gecos);
+
+Calls ad_finduser, if an object is returned it calls the setgecos, setpassword
+and save methods. Otherwise, calls ad_adduser. This is just a convenience
+constructor.
+
+=head1 METHODS
+
+=head2 save
+
+  $aduser->save;
+
+Saves the object using the current Net::LDAP connection.
+
+=head2 rmuser
+
+  $aduser->rmuser;
+
+Deletes the user and also updates the server.
+
+=head2 print_attrs
+
+  $aduser->print_attrs;
+
+iterates through the attributes and prints them. useful for debugging. TODO
+make a get_attrs version of this which returns a hashref of key => value pairs
+
+=head2 enable
+
+  $aduser->enable;
+
+enables the user. Changes are not made to server, call ->save to enable on
+server
+
+=head2 disable
+
+  $aduser->disable;
+
+disables the user. Changes are not made to server, call ->save to disable on
+server
+
+=head2 setgecos
+
+  $aduser->setgecos($gecos);
+
+Sets the dn, rdn, cn, initials, sn, givenName etc on the server. Changes are
+not made to server, call ->save to update the server.
+
+=head2 setpassword
+
+  $aduser->setpassword
+
+Sets the password on the server. Changes are not made to server, call ->save
+to update the server.
+
+=cut 
+
+
 use Exporter 'import';
 our @EXPORT_OK =
   qw( ad_set_password ad_update_or_create_user ad_unbind ad_finduser);
@@ -104,7 +205,7 @@ sub ad_update_or_create_user {
     if ( $user_obj = &ad_finduser($username) ) {
 
         $user_obj->setgecos($gecos) if $gecos;
-        $user_obj->setpassword($password) if $password;
+        #$user_obj->setpassword($password) if $password;
         $user_obj->update($ad);
     }
     else {

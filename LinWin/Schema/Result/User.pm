@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
     #'PRIMARY_GROUP' => {
     #    data_type   => 'integer',
     #    size        => '11',
-    #    is_nullable => 1,
+    #  has_one  is_nullable => 1,
     #},
     #'AFFILIATION_GROUP' => {
     #    data_type   => 'integer',
@@ -80,7 +80,7 @@ __PACKAGE__->belongs_to(
 );
 
 ## Each user has a row in the capabilities table. A one-to-one relationship
-__PACKAGE__->has_one(          # we should be able to change this to a has_one
+__PACKAGE__->might_have(          # we should be able to change this to a has_one
     capabilities => 'EngDatabase::Schema::Result::UserCapabilities',
     { 'foreign.USER_ID' => 'self.USER_ID' },
     {
