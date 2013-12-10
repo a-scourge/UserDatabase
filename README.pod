@@ -1,0 +1,66 @@
+=head1 LinWin
+
+Provides OO interfaces to AD servers and a database using
+Net::LDAP and DBIx::Class
+
+=head2 VERSION
+
+version 0.01
+
+This distribution includes the following modules:
+
+    LinWin::Schema
+    LinWin::AdUser
+    LinWin::Format
+    LinWin::WinLinBase
+    LinWin::Schema::Result::Attribute
+    LinWin::Schema::Result::Group
+    LinWin::Schema::Result::GroupMembership
+    LinWin::Schema::Result::Status
+    LinWin::Schema::Result::User
+    LinWin::Schema::Result::UserAttribute
+    LinWin::Schema::Result::UserCapabilities
+
+=head2 SYNOPSIS
+
+Populate, update, and modify a userdatabase.
+
+  use LinWin;
+  my $aduser = LinWin::AdUser->ad_finduser($username);
+
+  use LinWin::Format qw(parse_tcb);
+  while ( my $line = <> ) {
+    chomp $line;
+    my $user_href = parse_tcb($line);
+    push (@populate_array, $user_href);
+  }
+
+=head2 INSTALLATION
+
+To install this module, just download it.
+
+
+=head2 DEPENDANCIES
+
+This modules requires these other modules and libraries,
+some of which may be provided in the lib subdir:
+
+    DBIx::Class
+    Net::LDAP
+    Net::LDAP::Entry
+    Net::LDAP::Extra::AD
+
+=head2 SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+  perldoc ./LinWin/AdUser.pm
+  perldoc ./LinWin/Format.pm
+
+=head2 COPYRIGHT AND LICENSE
+
+Copyright (C) 2013 Gavin Rogers (Praxeology Ltd)
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
