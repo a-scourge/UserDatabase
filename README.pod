@@ -2,6 +2,7 @@
 
 Provides OO interfaces to AD servers and a database using
 Net::LDAP and DBIx::Class
+adding a line
 
 =head2 VERSION
 
@@ -37,7 +38,7 @@ Populate, update, and modify a userdatabase.
 
 =head2 INSTALLATION
 
-To install this module, just download it.
+To install this module, just clone it.
 
 
 =head2 DEPENDANCIES
@@ -53,7 +54,7 @@ some of which may be provided in the lib subdir:
 =head2 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
-perldoc command.
+perldoc command. This command is relative to the application
 
   perldoc ./LinWin/AdUser.pm
   perldoc ./LinWin/Format.pm
