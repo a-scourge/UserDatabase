@@ -2,7 +2,8 @@
 
 Provides OO interfaces to AD servers and a database using
 Net::LDAP and DBIx::Class
-adding a line
+adding a changed line
+adding another line
 
 =head2 VERSION
 
